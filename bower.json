@@ -1,0 +1,14 @@
+{
+  "name": "angular-defer",
+  "main": [
+    "dist/angular-defer.min.js",
+    "dist/ocLazyLoad.min.js"
+  ],
+  "version": "0.0.1",
+  "description": "angular-defer",
+  "license": "MIT",
+  "ignore": [
+    "*",
+    "!dist/*"
+  ]
+}
