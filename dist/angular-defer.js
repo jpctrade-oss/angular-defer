@@ -21,7 +21,7 @@ function minErr(module, ErrorConstructor) {
       }
       return match;
     });
-    message += '\nhttp://errors.angularjs.org/1.4.4/' +
+    message += '\nhttp://errors.angularjs.org/1.4.5/' +
       (module ? module + '/' : '') + code;
     for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
       message += paramPrefix + 'p' + (i - SKIP_INDEXES) + '=' +
@@ -790,11 +790,11 @@ function toDebugString(obj) {
   return obj;
 }
 var version = {
-  full: '1.4.4',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.4.5',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 4,
-  dot: 4,
-  codeName: 'pylon-requirement'
+  dot: 5,
+  codeName: 'permanent-internship'
 };
 function publishExternalAPI(angular) {
   extend(angular, {
@@ -6969,7 +6969,7 @@ function $$RAFProvider() { //rAF
                                $window.webkitCancelAnimationFrame ||
                                $window.webkitCancelRequestAnimationFrame;
     var rafSupported = !!requestAnimationFrame;
-    var rafFn = rafSupported
+    var raf = rafSupported
       ? function(fn) {
           var id = requestAnimationFrame(fn);
           return function() {
@@ -6982,40 +6982,8 @@ function $$RAFProvider() { //rAF
             $timeout.cancel(timer);
           };
         };
-    queueFn.supported = rafSupported;
-    var cancelLastRAF;
-    var taskCount = 0;
-    var taskQueue = [];
-    return queueFn;
-    function flush() {
-      for (var i = 0; i < taskQueue.length; i++) {
-        var task = taskQueue[i];
-        if (task) {
-          taskQueue[i] = null;
-          task();
-        }
-      }
-      taskCount = taskQueue.length = 0;
-    }
-    function queueFn(asyncFn) {
-      var index = taskQueue.length;
-      taskCount++;
-      taskQueue.push(asyncFn);
-      if (index === 0) {
-        cancelLastRAF = rafFn(flush);
-      }
-      return function cancelQueueFn() {
-        if (index >= 0) {
-          taskQueue[index] = null;
-          index = null;
-          if (--taskCount === 0 && cancelLastRAF) {
-            cancelLastRAF();
-            cancelLastRAF = null;
-            taskQueue.length = 0;
-          }
-        }
-      };
-    }
+    raf.supported = rafSupported;
+    return raf;
   }];
 }
 function $RootScopeProvider() {
@@ -10972,8 +10940,8 @@ var patternDirective = function() {
         regexp = regex || undefined;
         ctrl.$validate();
       });
-      ctrl.$validators.pattern = function(value) {
-        return ctrl.$isEmpty(value) || isUndefined(regexp) || regexp.test(value);
+      ctrl.$validators.pattern = function(modelValue, viewValue) {
+        return ctrl.$isEmpty(viewValue) || isUndefined(regexp) || regexp.test(viewValue);
       };
     }
   };
