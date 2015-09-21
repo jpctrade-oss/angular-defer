@@ -15,3 +15,4 @@ Some changes -
   - removed $parsing with expensiveChecks during directive binding
   - trigger `$evalAsync` on event fired
 - removed inline style, use `.ng-hide { display: none; }` yourself in css
+- set $clicked on $rootScope when click event triggered on links, and unset after $rootScope.$apply
