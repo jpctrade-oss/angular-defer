@@ -1,5 +1,5 @@
 {
-  "name": "angular-defer",
+  "name": "angular",
   "main": [
     "dist/angular-defer.min.js",
     "dist/ocLazyLoad.min.js"
