@@ -313,7 +313,7 @@ function copy(source, destination, stackSource, stackDest) {
       if (isArray(destination)) {
         destination.length = 0;
       } else {
-        forEach(destination, function(value, key) {
+        forEachObject(destination, function(value, key) {
           delete destination[key];
         });
       }
@@ -1342,7 +1342,7 @@ forEachObject({
     if (isUndefined(value)) {
       if (element.multiple && nodeName_(element) === 'select') {
         var result = [];
-        forEach(element.options, function(option) {
+        forEachArray(element.options, function(option) {
           if (option.selected) {
             result.push(option.value || option.text);
           }
@@ -2066,7 +2066,7 @@ var $$CoreAnimateQueueProvider = function() {
       if (classes) {
         classes = isString(classes) ? classes.split(' ') :
                   isArray(classes) ? classes : [];
-        forEach(classes, function(className) {
+        forEachArray(classes, function(className) {
           if (className) {
             changed = true;
             data[className] = value;
@@ -2076,13 +2076,13 @@ var $$CoreAnimateQueueProvider = function() {
       return changed;
     }
     function handleCSSClassChanges() {
-      forEach(postDigestElements, function(element) {
+      forEachArray(postDigestElements, function(element) {
         var data = postDigestQueue.get(element);
         if (data) {
           var existing = splitClasses(element.attr('class'));
           var toAdd = '';
           var toRemove = '';
-          forEach(data, function(status, className) {
+          forEachObject(data, function(status, className) {
             var hasClass = !!existing[className];
             if (status !== hasClass) {
               if (status) {
@@ -2519,7 +2519,7 @@ function $CacheFactoryProvider() {
     }
     cacheFactory.info = function() {
       var info = {};
-      forEach(caches, function(cache, cacheId) {
+      forEachObject(caches, function(cache, cacheId) {
         info[cacheId] = cache.info();
       });
       return info;
@@ -3424,7 +3424,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
       var srcAttr = src.$attr,
           dstAttr = dst.$attr,
           $element = dst.$$element;
-      forEach(dst, function(value, key) {
+      forEachObject(dst, function(value, key) {
         if (key.charAt(0) != '$') {
           if (src[key] && src[key] !== value) {
             value += (key === 'style' ? ';' : ' ') + src[key];
@@ -3432,7 +3432,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
           dst.$set(key, value, true, srcAttr[key]);
         }
       });
-      forEach(src, function(value, key) {
+      forEachObject(src, function(value, key) {
         if (key == 'class') {
           safeAddClass($element, value);
           dst['class'] = (dst['class'] ? dst['class'] + ' ' : '') + value;
@@ -3708,7 +3708,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
     function initializeDirectiveBindings(scope, attrs, destination, bindings,
                                          directive, newScope) {
       var onNewScopeDestroyed;
-      forEach(bindings, function(definition, scopeName) {
+      forEachObject(bindings, function(definition, scopeName) {
         var attrName = definition.attrName,
         optional = definition.optional,
         mode = definition.mode, // @, =, or &
@@ -3969,7 +3969,7 @@ function $HttpParamSerializerProvider() {
       forEachSorted(params, function(value, key) {
         if (value === null || isUndefined(value)) return;
         if (isArray(value)) {
-          forEach(value, function(v, k) {
+          forEachArray(value, function(v, k) {
             parts.push(encodeUriQuery(key)  + '=' + encodeUriQuery(serializeValue(v)));
           });
         } else {
@@ -3990,7 +3990,7 @@ function $HttpParamSerializerJQLikeProvider() {
       function serialize(toSerialize, prefix, topLevel) {
         if (toSerialize === null || isUndefined(toSerialize)) return;
         if (isArray(toSerialize)) {
-          forEach(toSerialize, function(value, index) {
+          forEachArray(toSerialize, function(value, index) {
             serialize(value, prefix + '[' + (isObject(value) ? index : '') + ']');
           });
         } else if (isObject(toSerialize) && !isDate(toSerialize)) {
@@ -4036,7 +4036,7 @@ function parseHeaders(headers) {
       fillInParsed(lowercase(trim(line.substr(0, i))), trim(line.substr(i + 1)));
     });
   } else if (isObject(headers)) {
-    forEach(headers, function(headerVal, headerKey) {
+    forEachObject(headers, function(headerVal, headerKey) {
       fillInParsed(lowercase(headerKey), trim(headerVal));
     });
   }
@@ -4060,7 +4060,7 @@ function transformData(data, headers, status, fns) {
   if (isFunction(fns)) {
     return fns(data, headers, status);
   }
-  forEach(fns, function(fn) {
+  forEachArray(fns, function(fn) {
     data = fn(data, headers, status);
   });
   return data;
@@ -10451,14 +10451,14 @@ var ngPluralizeDirective = ['$locale', '$interpolate', '$log', function($locale,
           braceReplacement = startSymbol + numberExp + '-' + offset + endSymbol,
           watchRemover = angular.noop,
           lastCount;
-      forEach(attr, function(expression, attributeName) {
+      forEachObject(attr, function(expression, attributeName) {
         var tmpMatch = IS_WHEN.exec(attributeName);
         if (tmpMatch) {
           var whenKey = (tmpMatch[1] ? '-' : '') + lowercase(tmpMatch[2]);
           whens[whenKey] = element.attr(attr.$attr[attributeName]);
         }
       });
-      forEach(whens, function(expression, key) {
+      forEachObject(whens, function(expression, key) {
         whensExpFns[key] = $interpolate(expression.replace(BRACE, braceReplacement));
       });
       scope.$watch(numberExp, function ngPluralizeWatchAction(newVal) {
@@ -10685,7 +10685,7 @@ var ngHideDirective = ['$animate', function($animate) {
 var ngStyleDirective = ngDirective(function(scope, element, attr) {
   scope.$watch(attr.ngStyle, function ngStyleWatchAction(newStyles, oldStyles) {
     if (oldStyles && (newStyles !== oldStyles)) {
-      forEach(oldStyles, function(val, style) { element.css(style, '');});
+      forEachObject(oldStyles, function(val, style) { element.css(style, '');});
     }
     if (newStyles) element.css(newStyles);
   }, true);
