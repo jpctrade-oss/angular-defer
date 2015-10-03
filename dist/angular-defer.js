@@ -811,7 +811,6 @@ function publishExternalAPI(angular) {
     'lowercase': lowercase,
     'uppercase': uppercase,
     'callbacks': {counter: 0},
-    'getTestability': getTestability,
     '$$minErr': minErr,
     'reloadWithDebugInfo': reloadWithDebugInfo
   });
@@ -823,7 +822,6 @@ function publishExternalAPI(angular) {
       });
       $provide.provider('$compile', $CompileProvider).
         directive({
-            a: htmlAnchorDirective,
             input: inputDirective,
             textarea: inputDirective,
             form: formDirective,
@@ -904,7 +902,6 @@ function publishExternalAPI(angular) {
         $sniffer: $SnifferProvider,
         $templateCache: $TemplateCacheProvider,
         $templateRequest: $TemplateRequestProvider,
-        $$testability: $$TestabilityProvider,
         $timeout: $TimeoutProvider,
         $window: $WindowProvider,
         $$rAF: $$RAFProvider,
@@ -7886,55 +7883,6 @@ function $TemplateRequestProvider() {
     return handleRequestFn;
   }];
 }
-function $$TestabilityProvider() {
-  this.$get = ['$rootScope', '$browser', '$location',
-       function($rootScope,   $browser,   $location) {
-    var testability = {};
-    testability.findBindings = function(element, expression, opt_exactMatch) {
-      var bindings = element.getElementsByClassName('ng-binding');
-      var matches = [];
-      forEachArray(bindings, function(binding) {
-        var dataBinding = angular.element(binding).data('$binding');
-        if (dataBinding) {
-          forEachArray(dataBinding, function(bindingName) {
-            if (opt_exactMatch) {
-              var matcher = new RegExp('(^|\\s)' + escapeForRegexp(expression) + '(\\s|\\||$)');
-              if (matcher.test(bindingName)) {
-                matches.push(binding);
-              }
-            } else {
-              if (bindingName.indexOf(expression) != -1) {
-                matches.push(binding);
-              }
-            }
-          });
-        }
-      });
-      return matches;
-    };
-    testability.findModels = function(element, expression, opt_exactMatch) {
-        var attributeEquals = opt_exactMatch ? '=' : '*=';
-        var selector = '[ng-model' + attributeEquals + '"' + expression + '"]';
-        var elements = element.querySelectorAll(selector);
-        if (elements.length) {
-          return elements;
-        }
-    };
-    testability.getLocation = function() {
-      return $location.url();
-    };
-    testability.setLocation = function(url) {
-      if (url !== $location.url()) {
-        $location.url(url);
-        $rootScope.$digest();
-      }
-    };
-    testability.whenStable = function(callback) {
-      $browser.notifyWhenNoOutstandingRequests(callback);
-    };
-    return testability;
-  }];
-}
 function $TimeoutProvider() {
   this.$get = ['$rootScope', '$browser', '$q', '$$q', '$exceptionHandler',
        function($rootScope,   $browser,   $q,   $$q,   $exceptionHandler) {
@@ -8568,23 +8516,6 @@ function ngDirective(directive) {
   directive.restrict = directive.restrict || 'A';
   return valueFn(directive);
 }
-var htmlAnchorDirective = valueFn({
-  restrict: 'E',
-  compile: function(element, attr) {
-    if (!attr.href && !attr.xlinkHref) {
-      return function(scope, element) {
-        if (element[0].nodeName.toLowerCase() !== 'a') return;
-        var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-                   'xlink:href' : 'href';
-        element.on('click', function(event) {
-          if (!element.attr(href)) {
-            event.preventDefault();
-          }
-        });
-      };
-    }
-  }
-});
 var ngAttributeAliasDirectives = {};
 forEachObject(BOOLEAN_ATTR, function(propName, attrName) {
   if (propName == "multiple") return;

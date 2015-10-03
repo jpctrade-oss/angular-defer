@@ -2301,7 +2301,7 @@ function toDebugString(obj) {
 
   $CompileProvider,
 
-  htmlAnchorDirective,
+  // htmlAnchorDirective,
   inputDirective,
   inputDirective,
   formDirective,
@@ -2381,7 +2381,7 @@ function toDebugString(obj) {
   $SnifferProvider,
   $TemplateCacheProvider,
   $TemplateRequestProvider,
-  $$TestabilityProvider,
+  // $$TestabilityProvider,
   $TimeoutProvider,
   $$RAFProvider,
   $WindowProvider,
@@ -2444,7 +2444,7 @@ function publishExternalAPI(angular) {
     'lowercase': lowercase,
     'uppercase': uppercase,
     'callbacks': {counter: 0},
-    'getTestability': getTestability,
+    // 'getTestability': getTestability,
     '$$minErr': minErr,
     // '$$csp': csp,
     'reloadWithDebugInfo': reloadWithDebugInfo
@@ -2460,7 +2460,7 @@ function publishExternalAPI(angular) {
       });
       $provide.provider('$compile', $CompileProvider).
         directive({
-            a: htmlAnchorDirective,
+            // a: htmlAnchorDirective,
             input: inputDirective,
             textarea: inputDirective,
             form: formDirective,
@@ -2541,7 +2541,7 @@ function publishExternalAPI(angular) {
         $sniffer: $SnifferProvider,
         $templateCache: $TemplateCacheProvider,
         $templateRequest: $TemplateRequestProvider,
-        $$testability: $$TestabilityProvider,
+        // $$testability: $$TestabilityProvider,
         $timeout: $TimeoutProvider,
         $window: $WindowProvider,
         $$rAF: $$RAFProvider,
@@ -17762,120 +17762,120 @@ function $TemplateRequestProvider() {
   }];
 }
 
-function $$TestabilityProvider() {
-  this.$get = ['$rootScope', '$browser', '$location',
-       function($rootScope,   $browser,   $location) {
+// function $$TestabilityProvider() {
+//   this.$get = ['$rootScope', '$browser', '$location',
+//        function($rootScope,   $browser,   $location) {
 
-    /**
-     * @name $testability
-     *
-     * @description
-     * The private $$testability service provides a collection of methods for use when debugging
-     * or by automated test and debugging tools.
-     */
-    var testability = {};
+//     /**
+//      * @name $testability
+//      *
+//      * @description
+//      * The private $$testability service provides a collection of methods for use when debugging
+//      * or by automated test and debugging tools.
+//      */
+//     var testability = {};
 
-    /**
-     * @name $$testability#findBindings
-     *
-     * @description
-     * Returns an array of elements that are bound (via ng-bind or {{}})
-     * to expressions matching the input.
-     *
-     * @param {Element} element The element root to search from.
-     * @param {string} expression The binding expression to match.
-     * @param {boolean} opt_exactMatch If true, only returns exact matches
-     *     for the expression. Filters and whitespace are ignored.
-     */
-    testability.findBindings = function(element, expression, opt_exactMatch) {
-      var bindings = element.getElementsByClassName('ng-binding');
-      var matches = [];
-      forEachArray(bindings, function(binding) {
-        var dataBinding = angular.element(binding).data('$binding');
-        if (dataBinding) {
-          forEachArray(dataBinding, function(bindingName) {
-            if (opt_exactMatch) {
-              var matcher = new RegExp('(^|\\s)' + escapeForRegexp(expression) + '(\\s|\\||$)');
-              if (matcher.test(bindingName)) {
-                matches.push(binding);
-              }
-            } else {
-              if (bindingName.indexOf(expression) != -1) {
-                matches.push(binding);
-              }
-            }
-          });
-        }
-      });
-      return matches;
-    };
+//     /**
+//      * @name $$testability#findBindings
+//      *
+//      * @description
+//      * Returns an array of elements that are bound (via ng-bind or {{}})
+//      * to expressions matching the input.
+//      *
+//      * @param {Element} element The element root to search from.
+//      * @param {string} expression The binding expression to match.
+//      * @param {boolean} opt_exactMatch If true, only returns exact matches
+//      *     for the expression. Filters and whitespace are ignored.
+//      */
+//     testability.findBindings = function(element, expression, opt_exactMatch) {
+//       var bindings = element.getElementsByClassName('ng-binding');
+//       var matches = [];
+//       forEachArray(bindings, function(binding) {
+//         var dataBinding = angular.element(binding).data('$binding');
+//         if (dataBinding) {
+//           forEachArray(dataBinding, function(bindingName) {
+//             if (opt_exactMatch) {
+//               var matcher = new RegExp('(^|\\s)' + escapeForRegexp(expression) + '(\\s|\\||$)');
+//               if (matcher.test(bindingName)) {
+//                 matches.push(binding);
+//               }
+//             } else {
+//               if (bindingName.indexOf(expression) != -1) {
+//                 matches.push(binding);
+//               }
+//             }
+//           });
+//         }
+//       });
+//       return matches;
+//     };
 
-    /**
-     * @name $$testability#findModels
-     *
-     * @description
-     * Returns an array of elements that are two-way found via ng-model to
-     * expressions matching the input.
-     *
-     * @param {Element} element The element root to search from.
-     * @param {string} expression The model expression to match.
-     * @param {boolean} opt_exactMatch If true, only returns exact matches
-     *     for the expression.
-     */
-    testability.findModels = function(element, expression, opt_exactMatch) {
-      // var prefixes = ['ng-'];
-      // for (var p = 0; p < prefixes.length; ++p) {
-        var attributeEquals = opt_exactMatch ? '=' : '*=';
-        var selector = '[ng-model' + attributeEquals + '"' + expression + '"]';
-        var elements = element.querySelectorAll(selector);
-        if (elements.length) {
-          return elements;
-        }
-      // }
-    };
+//     /**
+//      * @name $$testability#findModels
+//      *
+//      * @description
+//      * Returns an array of elements that are two-way found via ng-model to
+//      * expressions matching the input.
+//      *
+//      * @param {Element} element The element root to search from.
+//      * @param {string} expression The model expression to match.
+//      * @param {boolean} opt_exactMatch If true, only returns exact matches
+//      *     for the expression.
+//      */
+//     testability.findModels = function(element, expression, opt_exactMatch) {
+//       // var prefixes = ['ng-'];
+//       // for (var p = 0; p < prefixes.length; ++p) {
+//         var attributeEquals = opt_exactMatch ? '=' : '*=';
+//         var selector = '[ng-model' + attributeEquals + '"' + expression + '"]';
+//         var elements = element.querySelectorAll(selector);
+//         if (elements.length) {
+//           return elements;
+//         }
+//       // }
+//     };
 
-    /**
-     * @name $$testability#getLocation
-     *
-     * @description
-     * Shortcut for getting the location in a browser agnostic way. Returns
-     *     the path, search, and hash. (e.g. /path?a=b#hash)
-     */
-    testability.getLocation = function() {
-      return $location.url();
-    };
+//     /**
+//      * @name $$testability#getLocation
+//      *
+//      * @description
+//      * Shortcut for getting the location in a browser agnostic way. Returns
+//      *     the path, search, and hash. (e.g. /path?a=b#hash)
+//      */
+//     testability.getLocation = function() {
+//       return $location.url();
+//     };
 
-    /**
-     * @name $$testability#setLocation
-     *
-     * @description
-     * Shortcut for navigating to a location without doing a full page reload.
-     *
-     * @param {string} url The location url (path, search and hash,
-     *     e.g. /path?a=b#hash) to go to.
-     */
-    testability.setLocation = function(url) {
-      if (url !== $location.url()) {
-        $location.url(url);
-        $rootScope.$digest();
-      }
-    };
+//     /**
+//      * @name $$testability#setLocation
+//      *
+//      * @description
+//      * Shortcut for navigating to a location without doing a full page reload.
+//      *
+//      * @param {string} url The location url (path, search and hash,
+//      *     e.g. /path?a=b#hash) to go to.
+//      */
+//     testability.setLocation = function(url) {
+//       if (url !== $location.url()) {
+//         $location.url(url);
+//         $rootScope.$digest();
+//       }
+//     };
 
-    /**
-     * @name $$testability#whenStable
-     *
-     * @description
-     * Calls the callback when $timeout and $http requests are completed.
-     *
-     * @param {function} callback
-     */
-    testability.whenStable = function(callback) {
-      $browser.notifyWhenNoOutstandingRequests(callback);
-    };
+//     /**
+//      * @name $$testability#whenStable
+//      *
+//      * @description
+//      * Calls the callback when $timeout and $http requests are completed.
+//      *
+//      * @param {function} callback
+//      */
+//     testability.whenStable = function(callback) {
+//       $browser.notifyWhenNoOutstandingRequests(callback);
+//     };
 
-    return testability;
-  }];
-}
+//     return testability;
+//   }];
+// }
 
 function $TimeoutProvider() {
   this.$get = ['$rootScope', '$browser', '$q', '$$q', '$exceptionHandler',
@@ -19606,27 +19606,27 @@ function ngDirective(directive) {
  * without changing the location or causing page reloads, e.g.:
  * `<a href="" ng-click="list.addItem()">Add Item</a>`
  */
-var htmlAnchorDirective = valueFn({
-  restrict: 'E',
-  compile: function(element, attr) {
-    if (!attr.href && !attr.xlinkHref) {
-      return function(scope, element) {
-        // If the linked element is not an anchor tag anymore, do nothing
-        if (element[0].nodeName.toLowerCase() !== 'a') return;
+// var htmlAnchorDirective = valueFn({
+//   restrict: 'E',
+//   compile: function(element, attr) {
+//     if (!attr.href && !attr.xlinkHref) {
+//       return function(scope, element) {
+//         // If the linked element is not an anchor tag anymore, do nothing
+//         if (element[0].nodeName.toLowerCase() !== 'a') return;
 
-        // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
-        var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-                   'xlink:href' : 'href';
-        element.on('click', function(event) {
-          // if we have no href url, then don't navigate anywhere.
-          if (!element.attr(href)) {
-            event.preventDefault();
-          }
-        });
-      };
-    }
-  }
-});
+//         // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
+//         var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
+//                    'xlink:href' : 'href';
+//         element.on('click', function(event) {
+//           // if we have no href url, then don't navigate anywhere.
+//           if (!element.attr(href)) {
+//             event.preventDefault();
+//           }
+//         });
+//       };
+//     }
+//   }
+// });
 
 /**
  * @ngdoc directive
