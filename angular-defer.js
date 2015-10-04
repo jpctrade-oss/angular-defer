@@ -3106,13 +3106,13 @@ var BOOLEAN_ATTR = {
 //   BOOLEAN_ATTR[lowercase(value)] = value;
 // });
 var BOOLEAN_ELEMENTS = {
-  input: true,
-  select: true,
-  option: true,
-  textarea: true,
-  button: true,
-  form: true,
-  details: true
+  input: 1,
+  select: 1,
+  option: 1,
+  textarea: 1,
+  button: 1,
+  form: 1,
+  details: 1
 };
 // forEachArray('input,select,option,textarea,button,form,details'.split(','), function(value) {
 //   BOOLEAN_ELEMENTS[value] = true;
@@ -12684,9 +12684,9 @@ function ensureSafeAssignContext(obj, fullExpression) {
   }
 }
 
-var OPERATORS = createMap();
-forEachArray('+ - * / % === !== == != < > <= >= && || ! = |'.split(' '),
-  function(operator) { OPERATORS[operator] = true; });
+var OPERATORS = {
+  "+":1, "-":1, "*":1, "/":1, "%":1, "===":1, "!==":1, "==":1, "!=":1, "<":1, ">":1, "<=":1, ">=":1, "&&":1, "||":1, "!":1, "=":1, "|":1
+}
 var ESCAPE = {"n":"\n", "f":"\f", "r":"\r", "t":"\t", "v":"\v", "'":"'", '"':'"'};
 
 
@@ -23606,7 +23606,7 @@ var ngEventDirectives = {};
 //   'focus': true
 // };
 forEachArray(
-  'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup keypress submit focus blur copy cut paste'.split(' '),
+  ["click", "dblclick", "mousedown", "mouseup", "mouseover", "mouseout", "mousemove", "mouseenter", "mouseleave", "keydown", "keyup", "keypress", "submit", "focus", "blur", "copy", "cut", "paste"],
   function(eventName) {
     var directiveName = directiveNormalize('ng-' + eventName);
     ngEventDirectives[directiveName] = ['$parse', '$rootScope', function($parse, $rootScope) {
