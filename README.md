@@ -16,4 +16,4 @@ Some changes -
   - trigger `$evalAsync` on event fired
 - removed inline style, use `.ng-hide { display: none; }` yourself in css
 - set $clicked on $rootScope when click event triggered on links, and unset after $rootScope.$apply
-- removed htmlAnchorDirective, $$testability directives
+- removed $$testability directive

@@ -633,8 +633,6 @@ function assertArgFn(arg, name, acceptArrayAnnotation) {
   if (acceptArrayAnnotation && isArray(arg)) {
       arg = arg[arg.length - 1];
   }
-  assertArg(isFunction(arg), name, 'not a function, got ' +
-      (arg && typeof arg === 'object' ? arg.constructor.name || 'Object' : typeof arg));
   return arg;
 }
 function assertNotHasOwnProperty(name, context) {
@@ -698,7 +696,6 @@ function setupModuleLoader(window) {
           throw ngMinErr('badname', 'hasOwnProperty is not a valid {0} name', context);
         }
       };
-
       if (requires && modules.hasOwnProperty(name)) {
         modules[name] = null;
       }
@@ -825,6 +822,7 @@ function publishExternalAPI(angular) {
       });
       $provide.provider('$compile', $CompileProvider).
         directive({
+            a: htmlAnchorDirective,
             input: inputDirective,
             textarea: inputDirective,
             form: formDirective,
@@ -1717,10 +1715,8 @@ function annotate(fn, strictDi, name) {
     }
   } else if (isArray(fn)) {
     last = fn.length - 1;
-
     $inject = fn.slice(0, last);
   } else {
-
   }
   return $inject;
 }
@@ -1765,7 +1761,6 @@ function createInjector(modulesToLoad, strictDi) {
     };
   }
   function provider(name, provider_) {
-
     if (isFunction(provider_) || isArray(provider_)) {
       provider_ = providerInjector.instantiate(provider_);
     }
@@ -1795,7 +1790,6 @@ function createInjector(modulesToLoad, strictDi) {
   }
   function value(name, val) { return factory(name, valueFn(val), false); }
   function constant(name, value) {
-
     providerCache[name] = value;
     instanceCache[name] = value;
   }
@@ -1808,7 +1802,6 @@ function createInjector(modulesToLoad, strictDi) {
     };
   }
   function loadModules(modulesToLoad) {
-
     var runBlocks = [], moduleFn;
     forEachArray(modulesToLoad, function(module) {
       if (loadedModules.get(module)) return;
@@ -1832,7 +1825,6 @@ function createInjector(modulesToLoad, strictDi) {
         } else if (isArray(module)) {
             runBlocks.push(providerInjector.invoke(module));
         } else {
-
         }
       } catch (e) {
         if (isArray(module)) {
@@ -2610,10 +2602,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
     }
   }
    this.directive = function registerDirective(name, directiveFactory) {
-
     if (isString(name)) {
-
-
       if (!hasDirectives.hasOwnProperty(name)) {
         hasDirectives[name] = [];
         $provide.factory(name + Suffix, ['$injector', '$exceptionHandler',
@@ -2842,7 +2831,6 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
       compile.$$addScopeClass($compileNodes);
       var namespace = null;
       return function publicLinkFn(scope, cloneConnectFn, options) {
-
         options = options || {};
         var parentBoundTranscludeFn = options.parentBoundTranscludeFn,
           transcludeControllers = options.transcludeControllers,
@@ -3088,12 +3076,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
         if (directiveValue = directive.scope) {
           if (!directive.templateUrl) {
             if (isObject(directiveValue)) {
-              assertNoDuplicate('new/isolated scope', newIsolateScopeDirective || newScopeDirective,
-                                directive, $compileNode);
               newIsolateScopeDirective = directive;
             } else {
-              assertNoDuplicate('new/isolated scope', newIsolateScopeDirective, directive,
-                                $compileNode);
             }
           }
           newScopeDirective = newScopeDirective || directive;
@@ -3102,14 +3086,11 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
         if (!directive.templateUrl && directive.controller) {
           directiveValue = directive.controller;
           controllerDirectives = controllerDirectives || createMap();
-          assertNoDuplicate("'" + directiveName + "' controller",
-              controllerDirectives[directiveName], directive, $compileNode);
           controllerDirectives[directiveName] = directive;
         }
         if (directiveValue = directive.transclude) {
           hasTranscludeDirective = true;
           if (!directive.$$tlb) {
-
             nonTlbTranscludeDirective = directive;
           }
           if (directiveValue == 'element') {
@@ -3133,7 +3114,6 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
         }
         if (directive.template) {
           hasTemplate = true;
-
           templateDirective = directive;
           directiveValue = (isFunction(directive.template))
               ? directive.template($compileNode, templateAttrs)
@@ -3168,7 +3148,6 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
         }
         if (directive.templateUrl) {
           hasTemplate = true;
-
           templateDirective = directive;
           if (directive.replace) {
             replaceDirective = directive;
@@ -3842,7 +3821,6 @@ function $ControllerProvider() {
   var controllers = {},
       globals = false;
   this.register = function(name, constructor) {
-
     if (isObject(name)) {
       extend(controllers, name);
     } else {
@@ -3872,7 +3850,6 @@ function $ControllerProvider() {
             ? controllers[constructor]
             : getter(locals.$scope, constructor, true) ||
                 (globals ? getter($window, constructor, true) : undefined);
-
       }
       if (later) {
         var controllerPrototype = (isArray(expression) ?
@@ -4156,14 +4133,12 @@ function $HttpProvider() {
       }
       if (useLegacyPromise) {
         promise.success = function(fn) {
-
           promise.then(function(response) {
             fn(response.data, response.status, response.headers, config);
           });
           return promise;
         };
         promise.error = function(fn) {
-
           promise.then(null, function(response) {
             fn(response.data, response.status, response.headers, config);
           });
@@ -8542,6 +8517,23 @@ function ngDirective(directive) {
   directive.restrict = directive.restrict || 'A';
   return valueFn(directive);
 }
+var htmlAnchorDirective = valueFn({
+  restrict: 'E',
+  compile: function(element, attr) {
+    if (!attr.href && !attr.xlinkHref) {
+      return function(scope, element) {
+        if (element[0].nodeName.toLowerCase() !== 'a') return;
+        var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
+                   'xlink:href' : 'href';
+        element.on('click', function(event) {
+          if (!element.attr(href)) {
+            event.preventDefault();
+          }
+        });
+      };
+    }
+  }
+});
 var ngAttributeAliasDirectives = {};
 forEachObject(BOOLEAN_ATTR, function(propName, attrName) {
   if (propName == "multiple") return;
@@ -8652,7 +8644,6 @@ function FormController(element, attrs, $scope, $animate, $interpolate) {
     });
   };
   form.$addControl = function(control) {
-
     controls.push(control);
     if (control.$name) {
       form[control.$name] = control;
@@ -10753,7 +10744,6 @@ var SelectController =
     }
   };
   self.addOption = function(value, element) {
-
     if (value === '') {
       self.emptyOption = element;
     }

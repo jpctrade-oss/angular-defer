@@ -2301,7 +2301,7 @@ function toDebugString(obj) {
 
   $CompileProvider,
 
-  // htmlAnchorDirective,
+  htmlAnchorDirective,
   inputDirective,
   inputDirective,
   formDirective,
@@ -2460,7 +2460,7 @@ function publishExternalAPI(angular) {
       });
       $provide.provider('$compile', $CompileProvider).
         directive({
-            // a: htmlAnchorDirective,
+            a: htmlAnchorDirective,
             input: inputDirective,
             textarea: inputDirective,
             form: formDirective,
@@ -19606,27 +19606,27 @@ function ngDirective(directive) {
  * without changing the location or causing page reloads, e.g.:
  * `<a href="" ng-click="list.addItem()">Add Item</a>`
  */
-// var htmlAnchorDirective = valueFn({
-//   restrict: 'E',
-//   compile: function(element, attr) {
-//     if (!attr.href && !attr.xlinkHref) {
-//       return function(scope, element) {
-//         // If the linked element is not an anchor tag anymore, do nothing
-//         if (element[0].nodeName.toLowerCase() !== 'a') return;
+var htmlAnchorDirective = valueFn({
+  restrict: 'E',
+  compile: function(element, attr) {
+    if (!attr.href && !attr.xlinkHref) {
+      return function(scope, element) {
+        // If the linked element is not an anchor tag anymore, do nothing
+        if (element[0].nodeName.toLowerCase() !== 'a') return;
 
-//         // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
-//         var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-//                    'xlink:href' : 'href';
-//         element.on('click', function(event) {
-//           // if we have no href url, then don't navigate anywhere.
-//           if (!element.attr(href)) {
-//             event.preventDefault();
-//           }
-//         });
-//       };
-//     }
-//   }
-// });
+        // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
+        var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
+                   'xlink:href' : 'href';
+        element.on('click', function(event) {
+          // if we have no href url, then don't navigate anywhere.
+          if (!element.attr(href)) {
+            event.preventDefault();
+          }
+        });
+      };
+    }
+  }
+});
 
 /**
  * @ngdoc directive
