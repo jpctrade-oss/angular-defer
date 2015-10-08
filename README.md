@@ -17,3 +17,4 @@ Some changes -
 - removed inline style, use `.ng-hide { display: none; }` yourself in css
 - set $clicked on $rootScope when click event triggered on links, and unset after $rootScope.$apply
 - removed $$testability directive
+- useApplyAsync = true by default in $http

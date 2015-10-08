@@ -9649,7 +9649,7 @@ function $HttpProvider() {
     paramSerializer: '$httpParamSerializer'
   };
 
-  var useApplyAsync = false;
+  var useApplyAsync = true;
   /**
    * @ngdoc method
    * @name $httpProvider#useApplyAsync
@@ -9660,7 +9660,7 @@ function $HttpProvider() {
    * significant performance improvement for bigger applications that make many HTTP requests
    * concurrently (common during application bootstrap).
    *
-   * Defaults to false. If no value is specified, returns the current configured value.
+   * Defaults to true. If no value is specified, returns the current configured value.
    *
    * @param {boolean=} value If true, when requests are loaded, they will schedule a deferred
    *    "apply" on the next tick, giving time for subsequent requests in a roughly ~10ms window
