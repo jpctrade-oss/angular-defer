@@ -15708,6 +15708,13 @@ function $RootScopeProvider() {
               changeDetected++;
               oldValue.length = oldLength = newLength;
             }
+
+			if (oldValue.$version !== newValue.$version) {
+				changeDetected++;
+				oldValue.$version = newValue.$version;
+				return changeDetected;
+			}
+
             // copy the items to oldValue and look for changes.
             for (var i = 0; i < newLength; i++) {
               oldItem = oldValue[i];
@@ -15726,6 +15733,13 @@ function $RootScopeProvider() {
               oldLength = 0;
               changeDetected++;
             }
+
+			if (oldValue.$version !== newValue.$version) {
+				changeDetected++;
+				oldValue.$version = newValue.$version;
+				return changeDetected;
+			}
+
             // copy the items to oldValue and look for changes.
             newLength = 0;
             for (key in newValue) {

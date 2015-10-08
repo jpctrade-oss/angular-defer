@@ -7202,6 +7202,11 @@ function $RootScopeProvider() {
               changeDetected++;
               oldValue.length = oldLength = newLength;
             }
+			if (oldValue.$version !== newValue.$version) {
+				changeDetected++;
+				oldValue.$version = newValue.$version;
+				return changeDetected;
+			}
             for (var i = 0; i < newLength; i++) {
               oldItem = oldValue[i];
               newItem = newValue[i];
@@ -7217,6 +7222,11 @@ function $RootScopeProvider() {
               oldLength = 0;
               changeDetected++;
             }
+			if (oldValue.$version !== newValue.$version) {
+				changeDetected++;
+				oldValue.$version = newValue.$version;
+				return changeDetected;
+			}
             newLength = 0;
             for (key in newValue) {
               if (hasOwnProperty.call(newValue, key)) {
