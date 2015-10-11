@@ -1046,10 +1046,10 @@ function equals(o1, o2) {
 	if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
 	var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
 	if (t1 == t2) {
-		if (t1 == 'object') {
+		if (t1 === 'object') {
 			if (isArray(o1)) {
 				if (!isArray(o2)) return false;
-				if ((length = o1.length) == o2.length) {
+				if ((length = o1.length) === o2.length) {
 					for (key = 0; key < length; key++) {
 						if (!equals(o1[key], o2[key])) return false;
 					}
@@ -1059,7 +1059,7 @@ function equals(o1, o2) {
 				if (!isDate(o2)) return false;
 				return equals(o1.getTime(), o2.getTime());
 			} else if (isRegExp(o1)) {
-				return isRegExp(o2) ? o1.toString() == o2.toString() : false;
+				return isRegExp(o2) ? o1.toString() === o2.toString() : false;
 			} else {
 				if (isScope(o1) || isScope(o2) || isWindow(o1) || isWindow(o2) ||
 					isArray(o2) || isDate(o2) || isRegExp(o2)) return false;
@@ -3274,7 +3274,7 @@ forEachObject({
 		// jqLiteHasClass has only two arguments, but is a getter-only fn, so we need to special-case it
 		// in a way that survives minification.
 		// jqLiteEmpty takes no arguments but is a setter.
-		if (isUndefined((fn.length == 2 && (fn !== jqLiteHasClass && fn !== jqLiteController)) ? arg1 : arg2)) {
+		if (isUndefined((fn.length === 2 && (fn !== jqLiteHasClass && fn !== jqLiteController)) ? arg1 : arg2)) {
 			if (isObject(arg1)) {
 
 				// we are a write, but the object properties are the key/values
@@ -3661,7 +3661,7 @@ function hashKey(obj, nextUidFn) {
 	}
 
 	var objType = typeof obj;
-	if (objType == 'function' || (objType == 'object' && obj !== null)) {
+	if (objType === 'function' || (objType === 'object' && obj !== null)) {
 		key = obj.$$hashKey = objType + ':' + (nextUidFn || nextUid)();
 	} else {
 		key = objType + ':' + obj;
@@ -4468,7 +4468,7 @@ function createInjector(modulesToLoad, strictDi) {
 				if (isArray(module)) {
 					module = module[module.length - 1];
 				}
-				if (e.message && e.stack && e.stack.indexOf(e.message) == -1) {
+				if (e.message && e.stack && e.stack.indexOf(e.message) === -1) {
 					// Safari & FF's stack traces don't contain error.message content
 					// unlike those of Chrome and IE
 					// So if stack doesn't contain message, we create a new string that contains both.
@@ -7517,7 +7517,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 		var startSymbol = $interpolate.startSymbol(),
 				endSymbol = $interpolate.endSymbol(),
-				denormalizeTemplate = (startSymbol == '{{' || endSymbol  == '}}')
+				denormalizeTemplate = (startSymbol === '{{' || endSymbol  === '}}')
 						? identity
 						: function denormalizeTemplate(template) {
 							return template.replace(/\{\{/g, startSymbol).replace(/}}/g, endSymbol);
@@ -8035,7 +8035,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						nonTlbTranscludeDirective = directive;
 					}
 
-					if (directiveValue == 'element') {
+					if (directiveValue === 'element') {
 						hasElementTranscludeDirective = true;
 						terminalPriority = directive.priority;
 						$template = $compileNode;
@@ -8236,7 +8236,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					};
 
 					var controller = directive.controller;
-					if (controller == '@') {
+					if (controller === '@') {
 						controller = attrs[directive.name];
 					}
 
@@ -8476,10 +8476,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 			// copy the new attributes on the old attrs object
 			forEachObject(src, function(value, key) {
-				if (key == 'class') {
+				if (key === 'class') {
 					safeAddClass($element, value);
 					dst['class'] = (dst['class'] ? dst['class'] + ' ' : '') + value;
-				} else if (key == 'style') {
+				} else if (key === 'style') {
 					$element.attr('style', $element.attr('style') + ';' + value);
 					dst['style'] = (dst['style'] ? dst['style'] + ';' : '') + value;
 					// `dst` will never contain hasOwnProperty as DOM parser won't let it.
@@ -8676,15 +8676,15 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
 		function getTrustedContext(node, attrNormalizedName) {
-			if (attrNormalizedName == "srcdoc") {
+			if (attrNormalizedName === "srcdoc") {
 				return $sce.HTML;
 			}
 			var tag = nodeName_(node);
 			// maction[xlink:href] can source SVG.  It's not limited to <maction>.
-			if (attrNormalizedName == "xlinkHref" ||
-					(tag == "form" && attrNormalizedName == "action") ||
-					(tag != "img" && (attrNormalizedName == "src" ||
-														attrNormalizedName == "ngSrc"))) {
+			if (attrNormalizedName === "xlinkHref" ||
+					(tag === "form" && attrNormalizedName === "action") ||
+					(tag !== "img" && (attrNormalizedName === "src" ||
+														attrNormalizedName === "ngSrc"))) {
 				return $sce.RESOURCE_URL;
 			}
 		}
@@ -10646,7 +10646,7 @@ function $HttpProvider() {
 
 		function buildUrl(url, serializedParams) {
 			if (serializedParams.length > 0) {
-				url += ((url.indexOf('?') == -1) ? '?' : '&') + serializedParams;
+				url += ((url.indexOf('?') === -1) ? '?' : '&') + serializedParams;
 			}
 			return url;
 		}
@@ -10711,7 +10711,7 @@ function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDoc
 		$browser.$$incOutstandingRequestCount();
 		url = url || $browser.url();
 
-		if (lowercase(method) == 'jsonp') {
+		if (lowercase(method) === 'jsonp') {
 			var callbackId = '_' + (callbacks.counter++).toString(36);
 			callbacks[callbackId] = function(data) {
 				callbacks[callbackId].data = data;
@@ -10748,7 +10748,7 @@ function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDoc
 				// Occurs when accessing file resources or on Android 4.1 stock browser
 				// while retrieving files from application cache.
 				if (status === 0) {
-					status = response ? 200 : urlResolve(url).protocol == 'file' ? 404 : 0;
+					status = response ? 200 : urlResolve(url).protocol === 'file' ? 404 : 0;
 				}
 
 				completeRequest(callback,
@@ -11468,7 +11468,7 @@ function beginsWith(begin, whole) {
 
 function stripHash(url) {
 	var index = url.indexOf('#');
-	return index == -1 ? url : url.substr(0, index);
+	return index === -1 ? url : url.substr(0, index);
 }
 
 function trimEmptyHash(url) {
@@ -11553,7 +11553,7 @@ function LocationHtml5Url(appBase, appBaseNoFile, basePrefix) {
 			}
 		} else if (isDefined(appUrl = beginsWith(appBaseNoFile, url))) {
 			rewrittenUrl = appBaseNoFile + appUrl;
-		} else if (appBaseNoFile == url + '/') {
+		} else if (appBaseNoFile === url + '/') {
 			rewrittenUrl = appBaseNoFile;
 		}
 		if (rewrittenUrl) {
@@ -11667,7 +11667,7 @@ function LocationHashbangUrl(appBase, appBaseNoFile, hashPrefix) {
 	};
 
 	this.$$parseLinkUrl = function(url, relHref) {
-		if (stripHash(appBase) == stripHash(url)) {
+		if (stripHash(appBase) === stripHash(url)) {
 			this.$$parse(url);
 			return true;
 		}
@@ -11701,7 +11701,7 @@ function LocationHashbangInHtml5Url(appBase, appBaseNoFile, hashPrefix) {
 		var rewrittenUrl;
 		var appUrl;
 
-		if (appBase == stripHash(url)) {
+		if (appBase === stripHash(url)) {
 			rewrittenUrl = url;
 		} else if ((appUrl = beginsWith(appBaseNoFile, url))) {
 			rewrittenUrl = appBase + hashPrefix + appUrl;
@@ -11889,7 +11889,7 @@ var locationPrototype = {
 	 */
 	path: locationGetterSetter('$$path', function(path) {
 		path = path !== null ? path.toString() : '';
-		return path.charAt(0) == '/' ? path : '/' + path;
+		return path.charAt(0) === '/' ? path : '/' + path;
 	}),
 
 	/**
@@ -12782,19 +12782,19 @@ Lexer.prototype = {
 		var start = this.index;
 		while (this.index < this.text.length) {
 			var ch = lowercase(this.text.charAt(this.index));
-			if (ch == '.' || this.isNumber(ch)) {
+			if (ch === '.' || this.isNumber(ch)) {
 				number += ch;
 			} else {
 				var peekCh = this.peek();
-				if (ch == 'e' && this.isExpOperator(peekCh)) {
+				if (ch === 'e' && this.isExpOperator(peekCh)) {
 					number += ch;
 				} else if (this.isExpOperator(ch) &&
 						peekCh && this.isNumber(peekCh) &&
-						number.charAt(number.length - 1) == 'e') {
+						number.charAt(number.length - 1) === 'e') {
 					number += ch;
 				} else if (this.isExpOperator(ch) &&
 						(!peekCh || !this.isNumber(peekCh)) &&
-						number.charAt(number.length - 1) == 'e') {
+						number.charAt(number.length - 1) === 'e') {
 					this.throwError('Invalid exponent');
 				} else {
 					break;
@@ -14227,7 +14227,7 @@ var getterFnCacheDefault = createMap();
 var getterFnCacheExpensive = createMap();
 
 function isPossiblyDangerousMemberName(name) {
-	return name == 'constructor';
+	return name === 'constructor';
 }
 
 var objectValueOf = Object.prototype.valueOf;
@@ -18758,7 +18758,7 @@ function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
 
 	if (!isInfinity && numStr.indexOf('e') !== -1) {
 		var match = numStr.match(/([\d\.]+)e(-?)(\d+)/);
-		if (match && match[2] == '-' && match[3] > fractionSize + 1) {
+		if (match && match[2] === '-' && match[3] > fractionSize + 1) {
 			number = 0;
 		} else {
 			formatedText = numStr;
@@ -19529,8 +19529,8 @@ function orderByFilter($parse) {
 			if (isFunction(predicate)) {
 				get = predicate;
 			} else if (isString(predicate)) {
-				if ((predicate.charAt(0) == '+' || predicate.charAt(0) == '-')) {
-					descending = predicate.charAt(0) == '-' ? -1 : 1;
+				if ((predicate.charAt(0) === '+' || predicate.charAt(0) === '-')) {
+					descending = predicate.charAt(0) === '-' ? -1 : 1;
 					predicate = predicate.substring(1);
 				}
 				if (predicate !== '') {
@@ -19997,7 +19997,7 @@ var ngAttributeAliasDirectives = {};
 // boolean attrs are evaluated
 forEachObject(BOOLEAN_ATTR, function(propName, attrName) {
 	// binding to multiple is not supported
-	if (propName == "multiple") return;
+	if (propName === "multiple") return;
 
 	function defaultLinkFn(scope, element, attr) {
 		scope.$watch(attr[normalized], function ngBooleanAttrWatchAction(value) {
@@ -20034,7 +20034,7 @@ forEachObject(ALIASED_ATTR, function(htmlAttr, ngAttr) {
 			link: function(scope, element, attr) {
 				//special case ngPattern when a literal regular expression value
 				//is used as the expression (this way we don't have to watch anything).
-				if (ngAttr === "ngPattern" && attr.ngPattern.charAt(0) == "/") {
+				if (ngAttr === "ngPattern" && attr.ngPattern.charAt(0) === "/") {
 					var match = attr.ngPattern.match(REGEX_STRING_REGEXP);
 					if (match) {
 						attr.$set("ngPattern", new RegExp(match[1], match[2]));
@@ -21860,7 +21860,7 @@ function createDateParser(regexp, mapping) {
 			// When a date is JSON'ified to wraps itself inside of an extra
 			// set of double quotes. This makes the date parsing code unable
 			// to match the date string and parse it as a date.
-			if (iso.charAt(0) == '"' && iso.charAt(iso.length - 1) == '"') {
+			if (iso.charAt(0) === '"' && iso.charAt(iso.length - 1) === '"') {
 				iso = iso.substring(1, iso.length - 1);
 			}
 			if (ISO_DATE_REGEXP.test(iso)) {
@@ -28273,7 +28273,7 @@ var scriptDirective = ['$templateCache', function($templateCache) {
 		restrict: 'E',
 		terminal: true,
 		compile: function(element, attr) {
-			if (attr.type == 'text/ng-template') {
+			if (attr.type === 'text/ng-template') {
 				var templateUrl = attr.id,
 						text = element[0].text;
 
@@ -28862,7 +28862,7 @@ var PLURAL_CATEGORY = {ZERO: "zero", ONE: "one", TWO: "two", FEW: "few", MANY: "
 function getDecimals(n) {
 	n = n + '';
 	var i = n.indexOf('.');
-	return (i == -1) ? 0 : n.length - i - 1;
+	return (i === -1) ? 0 : n.length - i - 1;
 }
 
 function getVF(n, opt_precision) {
