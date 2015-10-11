@@ -128,7 +128,7 @@ function minErr(module, ErrorConstructor) {
 	trim: true,
 	escapeForRegexp: true,
 	isElement: true,
-	makeMap: true,
+	// makeMap: true,
 	includes: true,
 	arrayRemove: true,
 	copy: true,
@@ -806,13 +806,13 @@ function isElement(node) {
  * @param str 'key1,key2,...'
  * @returns {object} in the form of {key1:true, key2:true, ...}
  */
-function makeMap(str) {
-	var obj = {}, items = str.split(","), i;
-	for (i = 0; i < items.length; i++) {
-		obj[items[i]] = true;
-	}
-	return obj;
-}
+// function makeMap(str) {
+// 	var obj = {}, items = str.split(","), i;
+// 	for (i = 0; i < items.length; i++) {
+// 		obj[items[i]] = true;
+// 	}
+// 	return obj;
+// }
 
 
 function nodeName_(element) {
@@ -1001,7 +1001,7 @@ function shallowCopy(src, dst) {
 		dst = dst || {};
 
 		for (var key in src) {
-			if (!(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+			if (key.charAt(0) !== '$' || key.charAt(1) !== '$') {
 				dst[key] = src[key];
 			}
 		}
@@ -7031,7 +7031,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			Suffix = 'Directive',
 			COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\w\-]+)\s+(.*)$/,
 			CLASS_DIRECTIVE_REGEXP = /(([\w\-]+)(?:\:([^;]+))?;?)/,
-			ALL_OR_NOTHING_ATTRS = makeMap('ngSrc,ngSrcset,src,srcset'),
+			ALL_OR_NOTHING_ATTRS = {ngSrc: 1, ngSrcset: 1, src: 1, srcset: 1},
 			REQUIRE_PREFIX_REGEXP = /^(?:(\^\^?)?(\?)?(\^\^?)?)?/;
 
 	// Ref: http://developers.whatwg.org/webappapis.html#event-handler-idl-attributes

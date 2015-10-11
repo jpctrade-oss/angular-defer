@@ -237,13 +237,6 @@ function isElement(node) {
 		(node.nodeName  // we are a direct element
 		|| (node.prop && node.attr && node.find)));  // we have an on and find method part of jQuery API
 }
-function makeMap(str) {
-	var obj = {}, items = str.split(","), i;
-	for (i = 0; i < items.length; i++) {
-		obj[items[i]] = true;
-	}
-	return obj;
-}
 function nodeName_(element) {
 	return lowercase(element.nodeName || (element[0] && element[0].nodeName));
 }
@@ -348,7 +341,7 @@ function shallowCopy(src, dst) {
 	} else if (isObject(src)) {
 		dst = dst || {};
 		for (var key in src) {
-			if (!(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+			if (key.charAt(0) !== '$' || key.charAt(1) !== '$') {
 				dst[key] = src[key];
 			}
 		}
@@ -2531,7 +2524,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			Suffix = 'Directive',
 			COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\w\-]+)\s+(.*)$/,
 			CLASS_DIRECTIVE_REGEXP = /(([\w\-]+)(?:\:([^;]+))?;?)/,
-			ALL_OR_NOTHING_ATTRS = makeMap('ngSrc,ngSrcset,src,srcset'),
+			ALL_OR_NOTHING_ATTRS = {ngSrc: 1, ngSrcset: 1, src: 1, srcset: 1},
 			REQUIRE_PREFIX_REGEXP = /^(?:(\^\^?)?(\?)?(\^\^?)?)?/;
 	var EVENT_HANDLER_ATTR_REGEXP = /^(on[a-z]+|formaction)$/;
 	function parseIsolateBindings(scope, directiveName, isController) {
@@ -7176,11 +7169,11 @@ function $RootScopeProvider() {
 							changeDetected++;
 							oldValue.length = oldLength = newLength;
 						}
-			if (oldValue.$version !== newValue.$version) {
-				changeDetected++;
-				oldValue.$version = newValue.$version;
-				return changeDetected;
-			}
+						if (oldValue.$version !== newValue.$version) {
+							changeDetected++;
+							oldValue.$version = newValue.$version;
+							return changeDetected;
+						}
 						for (var i = 0; i < newLength; i++) {
 							oldItem = oldValue[i];
 							newItem = newValue[i];
@@ -7196,11 +7189,11 @@ function $RootScopeProvider() {
 							oldLength = 0;
 							changeDetected++;
 						}
-			if (oldValue.$version !== newValue.$version) {
-				changeDetected++;
-				oldValue.$version = newValue.$version;
-				return changeDetected;
-			}
+						if (oldValue.$version !== newValue.$version) {
+							changeDetected++;
+							oldValue.$version = newValue.$version;
+							return changeDetected;
+						}
 						newLength = 0;
 						for (key in newValue) {
 							if (hasOwnProperty.call(newValue, key)) {
@@ -8425,7 +8418,7 @@ function limitToFilter() {
 orderByFilter.$inject = ['$parse'];
 function orderByFilter($parse) {
 	return function(array, sortPredicate, reverseOrder) {
-		if (!(isArrayLike(array))) return array;
+		if (isString(array) || !isArrayLike(array)) return array;
 		if (!isArray(sortPredicate)) { sortPredicate = [sortPredicate]; }
 		if (sortPredicate.length === 0) { sortPredicate = ['+']; }
 		var predicates = processPredicates(sortPredicate, reverseOrder);
