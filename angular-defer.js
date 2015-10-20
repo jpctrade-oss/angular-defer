@@ -7571,7 +7571,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 							compileNodes($compileNodes, transcludeFn, $compileNodes,
 													 maxPriority, ignoreDirective, previousCompileContext);
 			compile.$$addScopeClass($compileNodes);
-			var namespace = null;
+			// var namespace = null;
 			return function publicLinkFn(scope, cloneConnectFn, options) {
 				assertArg(scope, 'scope');
 
@@ -7588,20 +7588,21 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
 				}
 
-				if (!namespace) {
-					namespace = detectNamespaceForChildElements(futureParentElement);
-				}
+				// if (!namespace) {
+				// 	namespace = detectNamespaceForChildElements(futureParentElement);
+				// }
 				var $linkNode;
-				if (namespace !== 'html') {
-					// When using a directive with replace:true and templateUrl the $compileNodes
-					// (or a child element inside of them)
-					// might change, so we need to recreate the namespace adapted compileNodes
-					// for call to the link function.
-					// Note: This will already clone the nodes...
-					$linkNode = jqLite(
-						wrapTemplate(namespace, jqLite('<div>').append($compileNodes).html())
-					);
-				} else if (cloneConnectFn) {
+				// if (namespace !== 'html') {
+				// 	// When using a directive with replace:true and templateUrl the $compileNodes
+				// 	// (or a child element inside of them)
+				// 	// might change, so we need to recreate the namespace adapted compileNodes
+				// 	// for call to the link function.
+				// 	// Note: This will already clone the nodes...
+				// 	$linkNode = jqLite(
+				// 		wrapTemplate(namespace, jqLite('<div>').append($compileNodes).html())
+				// 	);
+				// } else
+				if (cloneConnectFn) {
 					// important!!: we must call our jqLite.clone() since the jQuery one is trying to be smart
 					// and sometimes changes the structure of the DOM.
 					$linkNode = JQLitePrototype.clone.call($compileNodes);
@@ -7623,15 +7624,15 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			};
 		}
 
-		function detectNamespaceForChildElements(parentElement) {
-			// TODO: Make this detect MathML as well...
-			var node = parentElement && parentElement[0];
-			if (!node) {
-				return 'html';
-			} else {
-				return nodeName_(node) !== 'foreignobject' && node.toString().match(/SVG/) ? 'svg' : 'html';
-			}
-		}
+		// function detectNamespaceForChildElements(parentElement) {
+		// 	// TODO: Make this detect MathML as well...
+		// 	var node = parentElement && parentElement[0];
+		// 	if (!node) {
+		// 		return 'html';
+		// 	} else {
+		// 		return nodeName_(node) !== 'foreignobject' && node.toString().match(/SVG/) ? 'svg' : 'html';
+		// 	}
+		// }
 
 		/**
 		 * Compile function matches each node in nodeList against the directives. Once all directives
@@ -8079,7 +8080,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						if (jqLiteIsTextNode(directiveValue)) {
 							$template = [];
 						} else {
-							$template = removeComments(wrapTemplate(directive.templateNamespace, trim(directiveValue)));
+							$template = removeComments(trim(directiveValue));
 						}
 						compileNode = $template[0];
 
@@ -8505,8 +8506,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					}),
 					templateUrl = (isFunction(origAsyncDirective.templateUrl))
 							? origAsyncDirective.templateUrl($compileNode, tAttrs)
-							: origAsyncDirective.templateUrl,
-					templateNamespace = origAsyncDirective.templateNamespace;
+							: origAsyncDirective.templateUrl;
+					// templateNamespace = origAsyncDirective.templateNamespace;
 
 			$compileNode.empty();
 
@@ -8520,7 +8521,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						if (jqLiteIsTextNode(content)) {
 							$template = [];
 						} else {
-							$template = removeComments(wrapTemplate(templateNamespace, trim(content)));
+							$template = removeComments(trim(content));
 						}
 						compileNode = $template[0];
 
@@ -8556,14 +8557,15 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					});
 					afterTemplateChildLinkFn = compileNodes($compileNode[0].childNodes, childTranscludeFn);
 
-					while (linkQueue.length) {
-						var scope = linkQueue.shift(),
-								beforeTemplateLinkNode = linkQueue.shift(),
-								linkRootElement = linkQueue.shift(),
-								boundTranscludeFn = linkQueue.shift(),
-								linkNode = $compileNode[0];
+					for (var i = 0; i < linkQueue.length; i++) {
+						var scope = linkQueue[i][0];
 
 						if (scope.$$destroyed) continue;
+
+						var beforeTemplateLinkNode = linkQueue[i][1],
+							// linkRootElement = linkQueue[i][2],
+							boundTranscludeFn = linkQueue[i][3],
+							linkNode = $compileNode[0];
 
 						if (beforeTemplateLinkNode !== beforeTemplateCompileNode) {
 							var oldClasses = beforeTemplateLinkNode.className;
@@ -8573,7 +8575,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 								// it was cloned therefore we have to clone as well.
 								linkNode = jqLiteClone(compileNode);
 							}
-							replaceWith(linkRootElement, jqLite(beforeTemplateLinkNode), linkNode);
+							replaceWith(linkQueue[i][2], jqLite(beforeTemplateLinkNode), linkNode);
 
 							// Copy in CSS classes from original node
 							safeAddClass(jqLite(linkNode), oldClasses);
@@ -8593,10 +8595,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				var childBoundTranscludeFn = boundTranscludeFn;
 				if (scope.$$destroyed) return;
 				if (linkQueue) {
-					linkQueue.push(scope,
+					linkQueue[linkQueue.length] = [scope,
 												 node,
 												 rootElement,
-												 childBoundTranscludeFn);
+												 childBoundTranscludeFn];
 				} else {
 					if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
 						childBoundTranscludeFn = createBoundTranscludeFn(scope, afterTemplateNodeLinkFn.transclude, boundTranscludeFn);
@@ -8661,18 +8663,18 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 		}
 
 
-		function wrapTemplate(type, template) {
-			type = lowercase(type || 'html');
-			switch (type) {
-			case 'svg':
-			case 'math':
-				var wrapper = document.createElement('div');
-				wrapper.innerHTML = '<' + type + '>' + template + '</' + type + '>';
-				return wrapper.childNodes[0].childNodes;
-			default:
-				return template;
-			}
-		}
+		// function wrapTemplate(type, template) {
+		// 	type = lowercase(type || 'html');
+		// 	switch (type) {
+		// 	case 'svg':
+		// 	case 'math':
+		// 		var wrapper = document.createElement('div');
+		// 		wrapper.innerHTML = '<' + type + '>' + template + '</' + type + '>';
+		// 		return wrapper.childNodes[0].childNodes;
+		// 	default:
+		// 		return template;
+		// 	}
+		// }
 
 
 		function getTrustedContext(node, attrNormalizedName) {
@@ -8681,7 +8683,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			}
 			var tag = nodeName_(node);
 			// maction[xlink:href] can source SVG.  It's not limited to <maction>.
-			if (attrNormalizedName === "xlinkHref" ||
+			if ( //attrNormalizedName === "xlinkHref" ||
 					(tag === "form" && attrNormalizedName === "action") ||
 					(tag !== "img" && (attrNormalizedName === "src" ||
 														attrNormalizedName === "ngSrc"))) {
@@ -12273,13 +12275,13 @@ function $LocationProvider() {
 			var absHref = elm.prop('href');
 			// get the actual href attribute - see
 			// http://msdn.microsoft.com/en-us/library/ie/dd347148(v=vs.85).aspx
-			var relHref = elm.attr('href') || elm.attr('xlink:href');
+			var relHref = elm.attr('href'); // || elm.attr('xlink:href');
 
-			if (isObject(absHref) && absHref.toString() === '[object SVGAnimatedString]') {
-				// SVGAnimatedString.animVal should be identical to SVGAnimatedString.baseVal, unless during
-				// an animation.
-				absHref = urlResolve(absHref.animVal).href;
-			}
+			// if (isObject(absHref) && absHref.toString() === '[object SVGAnimatedString]') {
+			// 	// SVGAnimatedString.animVal should be identical to SVGAnimatedString.baseVal, unless during
+			// 	// an animation.
+			// 	absHref = urlResolve(absHref.animVal).href;
+			// }
 
 			// Ignore when url is started with javascript: or mailto:
 			if (IGNORE_URI_REGEXP.test(absHref)) return;
@@ -19629,8 +19631,8 @@ var htmlAnchorDirective = valueFn({
 				if (element[0].nodeName.toLowerCase() !== 'a') return;
 
 				// SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
-				var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-									 'xlink:href' : 'href';
+				var href = 'href'; // toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
+									 //'xlink:href' : 'href';
 				element.on('click', function(event) {
 					// if we have no href url, then don't navigate anywhere.
 					if (!element.attr(href)) {
@@ -20060,12 +20062,12 @@ forEachArray(['src', 'srcset', 'href'], function(attrName) {
 				var propName = attrName,
 						name = attrName;
 
-				if (attrName === 'href' &&
-						toString.call(element.prop('href')) === '[object SVGAnimatedString]') {
-					name = 'xlinkHref';
-					attr.$attr[name] = 'xlink:href';
-					propName = null;
-				}
+				// if (attrName === 'href' &&
+				// 		toString.call(element.prop('href')) === '[object SVGAnimatedString]') {
+				// 	name = 'xlinkHref';
+				// 	attr.$attr[name] = 'xlink:href';
+				// 	propName = null;
+				// }
 
 				attr.$observe(normalized, function(value) {
 					if (!value) {
@@ -24458,17 +24460,17 @@ var ngIncludeFillContentDirective = ['$compile',
 			priority: -400,
 			require: 'ngInclude',
 			link: function(scope, $element, $attr, ctrl) {
-				if (/SVG/.test($element[0].toString())) {
-					// WebKit: https://bugs.webkit.org/show_bug.cgi?id=135698 --- SVG elements do not
-					// support innerHTML, so detect this here and try to generate the contents
-					// specially.
-					$element.empty();
-					$compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope,
-							function namespaceAdaptedClone(clone) {
-						$element.append(clone);
-					}, {futureParentElement: $element});
-					return;
-				}
+				// if (/SVG/.test($element[0].toString())) {
+				// 	// WebKit: https://bugs.webkit.org/show_bug.cgi?id=135698 --- SVG elements do not
+				// 	// support innerHTML, so detect this here and try to generate the contents
+				// 	// specially.
+				// 	$element.empty();
+				// 	$compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope,
+				// 			function namespaceAdaptedClone(clone) {
+				// 		$element.append(clone);
+				// 	}, {futureParentElement: $element});
+				// 	return;
+				// }
 
 				$element.html(ctrl.template);
 				$compile($element.contents())(scope);

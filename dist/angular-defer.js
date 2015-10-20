@@ -2822,7 +2822,6 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 							compileNodes($compileNodes, transcludeFn, $compileNodes,
 													 maxPriority, ignoreDirective, previousCompileContext);
 			compile.$$addScopeClass($compileNodes);
-			var namespace = null;
 			return function publicLinkFn(scope, cloneConnectFn, options) {
 				options = options || {};
 				var parentBoundTranscludeFn = options.parentBoundTranscludeFn,
@@ -2831,15 +2830,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				if (parentBoundTranscludeFn && parentBoundTranscludeFn.$$boundTransclude) {
 					parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
 				}
-				if (!namespace) {
-					namespace = detectNamespaceForChildElements(futureParentElement);
-				}
 				var $linkNode;
-				if (namespace !== 'html') {
-					$linkNode = jqLite(
-						wrapTemplate(namespace, jqLite('<div>').append($compileNodes).html())
-					);
-				} else if (cloneConnectFn) {
+				if (cloneConnectFn) {
 					$linkNode = JQLitePrototype.clone.call($compileNodes);
 				} else {
 					$linkNode = $compileNodes;
@@ -2854,14 +2846,6 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				if (compositeLinkFn) compositeLinkFn(scope, $linkNode, $linkNode, parentBoundTranscludeFn);
 				return $linkNode;
 			};
-		}
-		function detectNamespaceForChildElements(parentElement) {
-			var node = parentElement && parentElement[0];
-			if (!node) {
-				return 'html';
-			} else {
-				return nodeName_(node) !== 'foreignobject' && node.toString().match(/SVG/) ? 'svg' : 'html';
-			}
 		}
 		function compileNodes(nodeList, transcludeFn, $rootElement, maxPriority, ignoreDirective,
 														previousCompileContext) {
@@ -3117,7 +3101,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						if (jqLiteIsTextNode(directiveValue)) {
 							$template = [];
 						} else {
-							$template = removeComments(wrapTemplate(directive.templateNamespace, trim(directiveValue)));
+							$template = removeComments(trim(directiveValue));
 						}
 						compileNode = $template[0];
 						if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
@@ -3426,8 +3410,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					}),
 					templateUrl = (isFunction(origAsyncDirective.templateUrl))
 							? origAsyncDirective.templateUrl($compileNode, tAttrs)
-							: origAsyncDirective.templateUrl,
-					templateNamespace = origAsyncDirective.templateNamespace;
+							: origAsyncDirective.templateUrl;
 			$compileNode.empty();
 			$templateRequest(templateUrl)
 				.then(function(content) {
@@ -3437,7 +3420,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						if (jqLiteIsTextNode(content)) {
 							$template = [];
 						} else {
-							$template = removeComments(wrapTemplate(templateNamespace, trim(content)));
+							$template = removeComments(trim(content));
 						}
 						compileNode = $template[0];
 						if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
@@ -3467,20 +3450,19 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						}
 					});
 					afterTemplateChildLinkFn = compileNodes($compileNode[0].childNodes, childTranscludeFn);
-					while (linkQueue.length) {
-						var scope = linkQueue.shift(),
-								beforeTemplateLinkNode = linkQueue.shift(),
-								linkRootElement = linkQueue.shift(),
-								boundTranscludeFn = linkQueue.shift(),
-								linkNode = $compileNode[0];
+					for (var i = 0; i < linkQueue.length; i++) {
+						var scope = linkQueue[i][0];
 						if (scope.$$destroyed) continue;
+						var beforeTemplateLinkNode = linkQueue[i][1],
+							boundTranscludeFn = linkQueue[i][3],
+							linkNode = $compileNode[0];
 						if (beforeTemplateLinkNode !== beforeTemplateCompileNode) {
 							var oldClasses = beforeTemplateLinkNode.className;
 							if (!(previousCompileContext.hasElementTranscludeDirective &&
 									origAsyncDirective.replace)) {
 								linkNode = jqLiteClone(compileNode);
 							}
-							replaceWith(linkRootElement, jqLite(beforeTemplateLinkNode), linkNode);
+							replaceWith(linkQueue[i][2], jqLite(beforeTemplateLinkNode), linkNode);
 							safeAddClass(jqLite(linkNode), oldClasses);
 						}
 						if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
@@ -3497,10 +3479,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				var childBoundTranscludeFn = boundTranscludeFn;
 				if (scope.$$destroyed) return;
 				if (linkQueue) {
-					linkQueue.push(scope,
+					linkQueue[linkQueue.length] = [scope,
 												 node,
 												 rootElement,
-												 childBoundTranscludeFn);
+												 childBoundTranscludeFn];
 				} else {
 					if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
 						childBoundTranscludeFn = createBoundTranscludeFn(scope, afterTemplateNodeLinkFn.transclude, boundTranscludeFn);
@@ -3549,24 +3531,12 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				});
 			}
 		}
-		function wrapTemplate(type, template) {
-			type = lowercase(type || 'html');
-			switch (type) {
-			case 'svg':
-			case 'math':
-				var wrapper = document.createElement('div');
-				wrapper.innerHTML = '<' + type + '>' + template + '</' + type + '>';
-				return wrapper.childNodes[0].childNodes;
-			default:
-				return template;
-			}
-		}
 		function getTrustedContext(node, attrNormalizedName) {
 			if (attrNormalizedName === "srcdoc") {
 				return $sce.HTML;
 			}
 			var tag = nodeName_(node);
-			if (attrNormalizedName === "xlinkHref" ||
+			if ( //attrNormalizedName === "xlinkHref" ||
 					(tag === "form" && attrNormalizedName === "action") ||
 					(tag !== "img" && (attrNormalizedName === "src" ||
 														attrNormalizedName === "ngSrc"))) {
@@ -4938,10 +4908,7 @@ function $LocationProvider() {
 				if (elm[0] === $rootElement[0] || !(elm = elm.parent())[0]) return;
 			}
 			var absHref = elm.prop('href');
-			var relHref = elm.attr('href') || elm.attr('xlink:href');
-			if (isObject(absHref) && absHref.toString() === '[object SVGAnimatedString]') {
-				absHref = urlResolve(absHref.animVal).href;
-			}
+			var relHref = elm.attr('href'); // || elm.attr('xlink:href');
 			if (IGNORE_URI_REGEXP.test(absHref)) return;
 			if (absHref && !elm.attr('target') && !event.isDefaultPrevented()) {
 				if ($location.$$parseLinkUrl(absHref, relHref)) {
@@ -8526,8 +8493,7 @@ var htmlAnchorDirective = valueFn({
 		if (!attr.href && !attr.xlinkHref) {
 			return function(scope, element) {
 				if (element[0].nodeName.toLowerCase() !== 'a') return;
-				var href = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-									 'xlink:href' : 'href';
+				var href = 'href'; // toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
 				element.on('click', function(event) {
 					if (!element.attr(href)) {
 						event.preventDefault();
@@ -8589,12 +8555,6 @@ forEachArray(['src', 'srcset', 'href'], function(attrName) {
 			link: function(scope, element, attr) {
 				var propName = attrName,
 						name = attrName;
-				if (attrName === 'href' &&
-						toString.call(element.prop('href')) === '[object SVGAnimatedString]') {
-					name = 'xlinkHref';
-					attr.$attr[name] = 'xlink:href';
-					propName = null;
-				}
 				attr.$observe(normalized, function(value) {
 					if (!value) {
 						if (attrName === 'href') {
@@ -9494,14 +9454,6 @@ var ngIncludeFillContentDirective = ['$compile',
 			priority: -400,
 			require: 'ngInclude',
 			link: function(scope, $element, $attr, ctrl) {
-				if (/SVG/.test($element[0].toString())) {
-					$element.empty();
-					$compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope,
-							function namespaceAdaptedClone(clone) {
-						$element.append(clone);
-					}, {futureParentElement: $element});
-					return;
-				}
 				$element.html(ctrl.template);
 				$compile($element.contents())(scope);
 			}

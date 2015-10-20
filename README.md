@@ -20,3 +20,5 @@ to differentiate click and browser back button.
 - removed $$testability directive :)
 - useApplyAsync = true by default in $http
 - check fast $version check for object and array for $watchCollection
+- dropped svg, math support
+- modified linkQueue not to use .shift()
