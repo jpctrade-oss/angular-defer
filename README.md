@@ -4,10 +4,10 @@ Some changes -
 - separate forEach into forEachArray and forEachObject
 - removed manualLowercase
 - delete Object.prototype.watch / unwatch (no, thanks firefox)
-- remove csp, noUnsafeEval = false;
+- remove csp, `noUnsafeEval = false`;
 - disable automatic loading of ng-app, you must use angular.bootstrap
 - angular.element is always jqlite
-- added cssCamelCase, removed MOZ_HACK_REGEXP from camelCase
+- added cssCamelCase, removed `MOZ_HACK_REGEXP` from camelCase
 - debugInfoEnable = false by default
 - removed `PREFIX_REGEXP`, no `data-ng-`, `x-`, but only `ng-`
 - removed class/comments directives, must use only attribute or element directive
@@ -15,10 +15,11 @@ Some changes -
   - removed $parsing with expensiveChecks during directive binding
   - trigger `$evalAsync` on event fired
 - removed inline style, use `.ng-hide { display: none; }` yourself in css
-- set $clicked on $rootScope when click event triggered on links, and unset after $rootScope.$apply,
+- set `$clicked` property on `$rootScope` when click event triggered on links, and unset after $rootScope.$apply,
 to differentiate click and browser back button.
-- removed $$testability directive :)
-- useApplyAsync = true by default in $http
+- removed `$$testability` provider :)
+- `useApplyAsync = true` by default in $http
 - check fast $version check for object and array for $watchCollection
 - dropped svg, math support
-- modified linkQueue not to use .shift()
+- modified `linkQueue` not to use `.shift()`
+- modified `while(x.length) x.shift()` into `for` array

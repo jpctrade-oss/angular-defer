@@ -10306,12 +10306,13 @@ function $HttpProvider() {
 				}
 			});
 
-			while (chain.length) {
-				var thenFn = chain.shift();
-				var rejectFn = chain.shift();
+			for (var i = 0; i < chain.length - 1; i += 2) {
+				var thenFn = chain[i];
+				var rejectFn = chain[i+1];
 
 				promise = promise.then(thenFn, rejectFn);
 			}
+			chain.length = 0;
 
 			if (useLegacyPromise) {
 				promise.success = function(fn) {
@@ -15601,9 +15602,10 @@ function $RootScopeProvider() {
 				}
 
 				return function deregisterWatchGroup() {
-					while (deregisterFns.length) {
-						deregisterFns.shift()();
+					for (var i = 0; i < deregisterFns.length; i++) {
+						deregisterFns[i]();
 					}
+					deregisterFns.length = 0;
 				};
 			},
 
@@ -15867,7 +15869,7 @@ function $RootScopeProvider() {
 						dirty, ttl = TTL,
 						next, current, target = this,
 						watchLog = [],
-						logIdx, logMsg, asyncTask;
+						logIdx, logMsg, asyncTask, i;
 
 				beginPhase('$digest');
 				// Check for changes to browser url that happened in sync before the call to $digest
@@ -15886,15 +15888,16 @@ function $RootScopeProvider() {
 					dirty = false;
 					current = target;
 
-					while (asyncQueue.length) {
+					for (i = 0; i < asyncQueue.length; i++) {
 						try {
-							asyncTask = asyncQueue.shift();
+							asyncTask = asyncQueue[i];
 							asyncTask.scope.$eval(asyncTask.expression, asyncTask.locals);
 						} catch (e) {
 							$exceptionHandler(e);
 						}
 						lastDirtyWatch = null;
 					}
+					asyncQueue.length = 0;
 
 					traverseScopesLoop:
 					do { // "traverse the scopes" loop
@@ -15916,15 +15919,15 @@ function $RootScopeProvider() {
 											lastDirtyWatch = watch;
 											watch.last = watch.eq ? copy(value, null) : value;
 											watch.fn(value, ((last === initWatchVal) ? value : last), current);
-											if (ttl < 5) {
-												logIdx = 4 - ttl;
-												if (!watchLog[logIdx]) watchLog[logIdx] = [];
-												watchLog[logIdx].push({
-													msg: isFunction(watch.exp) ? 'fn: ' + (watch.exp.name || watch.exp.toString()) : watch.exp,
-													newVal: value,
-													oldVal: last
-												});
-											}
+											// if (ttl < 5) {
+											// 	logIdx = 4 - ttl;
+											// 	if (!watchLog[logIdx]) watchLog[logIdx] = [];
+											// 	watchLog[logIdx].push({
+											// 		msg: isFunction(watch.exp) ? 'fn: ' + (watch.exp.name || watch.exp.toString()) : watch.exp,
+											// 		newVal: value,
+											// 		oldVal: last
+											// 	});
+											// }
 										} else if (watch === lastDirtyWatch) {
 											// If the most recently dirty watcher is now clean, short circuit since the remaining watchers
 											// have already been tested.
@@ -15963,13 +15966,14 @@ function $RootScopeProvider() {
 
 				clearPhase();
 
-				while (postDigestQueue.length) {
+				for (i = 0; i < postDigestQueue.length; i++) {
 					try {
-						postDigestQueue.shift()();
+						postDigestQueue[i]();
 					} catch (e) {
 						$exceptionHandler(e);
 					}
 				}
+				postDigestQueue.length = 0;
 			},
 
 
@@ -16468,13 +16472,14 @@ function $RootScopeProvider() {
 		function initWatchVal() {}
 
 		function flushApplyAsync() {
-			while (applyAsyncQueue.length) {
+			for(var i = 0; i < applyAsyncQueue.length; i++) {
 				try {
-					applyAsyncQueue.shift()();
+					applyAsyncQueue[i]();
 				} catch (e) {
 					$exceptionHandler(e);
 				}
 			}
+			applyAsyncQueue.length = 0;
 			applyAsyncId = null;
 		}
 
