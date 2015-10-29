@@ -14327,6 +14327,7 @@ function $ParseProvider() {
 
 		return function $parse(exp, interceptorFn, expensiveChecks) {
 			var parsedExpression, oneTime, cacheKey;
+			console.log([exp, interceptorFn, expensiveChecks]);
 
 			switch (typeof exp) {
 				case 'string':
@@ -15908,16 +15909,15 @@ function $RootScopeProvider() {
 					dirty = false;
 					current = target;
 
-					for (i = 0; i < asyncQueue.length; i++) {
+					while(asyncQueue.length) {
 						try {
-							asyncTask = asyncQueue[i];
+							asyncTask = asyncQueue.pop();
 							asyncTask.scope.$eval(asyncTask.expression, asyncTask.locals);
 						} catch (e) {
 							$exceptionHandler(e);
 						}
 						lastDirtyWatch = null;
 					}
-					asyncQueue.length = 0;
 
 					traverseScopesLoop:
 					do { // "traverse the scopes" loop
@@ -16148,7 +16148,7 @@ function $RootScopeProvider() {
 					});
 				}
 
-				asyncQueue.push({scope: this, expression: expr, locals: locals});
+				asyncQueue.unshift({scope: this, expression: expr, locals: locals});
 			},
 
 			$$postDigest: function(fn) {
