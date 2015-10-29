@@ -23,3 +23,4 @@ to differentiate click and browser back button.
 - dropped svg, math support
 - modified `linkQueue` not to use `.shift()`
 - modified `while(x.length) x.shift()` into `for` array
+- changed angular.copy to custom deepCopy that used in $digest and few more places

@@ -133,6 +133,7 @@ function minErr(module, ErrorConstructor) {
 	arrayRemove: true,
 	copy: true,
 	shallowCopy: true,
+	deepCopy: true,
 	equals: true,
 	csp: true,
 	jq: true,
@@ -889,6 +890,25 @@ function arrayRemove(array, value) {
  </file>
  </example>
  */
+
+function deepCopy(obj) {
+	var out, i;
+	if (toString.call(obj) === '[object Array]') {
+		out = [];
+		for (i = 0, len = obj.length; i < len; i++) {
+			out[i] = deepCopy(obj[i]);
+		}
+		return out;
+	} else if (typeof obj === 'object') {
+		out = {};
+		for (i in obj) {
+			out[i] = deepCopy(obj[i]);
+		}
+		return out;
+	}
+	return obj;
+}
+
 function copy(source, destination, stackSource, stackDest) {
 	if (isWindow(source) || isScope(source)) {
 		throw ngMinErr('cpws',
@@ -11949,7 +11969,7 @@ var locationPrototype = {
 					search = search.toString();
 					this.$$search = parseKeyValue(search);
 				} else if (isObject(search)) {
-					search = copy(search, {});
+					search = deepCopy(search, {});
 					// remove object undefined or null properties
 					forEachObject(search, function(value, key) {
 						if (value == null) delete search[key];
@@ -13030,7 +13050,7 @@ AST.prototype = {
 		} else if (this.expect('{')) {
 			primary = this.object();
 		} else if (this.constants.hasOwnProperty(this.peek().text)) {
-			primary = copy(this.constants[this.consume().text]);
+			primary = shallowCopy(this.constants[this.consume().text]);
 		} else if (this.peek().identifier) {
 			primary = this.identifier();
 		} else if (this.peek().constant) {
@@ -15905,7 +15925,7 @@ function $RootScopeProvider() {
 							// process our watches
 							length = watchers.length;
 							while (length--) {
-								try {
+
 									watch = watchers[length];
 									// Most common watches are on primitives, in which case we can short
 									// circuit it with === operator, only when === fails do we use .equals
@@ -15917,8 +15937,12 @@ function $RootScopeProvider() {
 															 && isNaN(value) && isNaN(last)))) {
 											dirty = true;
 											lastDirtyWatch = watch;
-											watch.last = watch.eq ? copy(value, null) : value;
-											watch.fn(value, ((last === initWatchVal) ? value : last), current);
+											watch.last = watch.eq ? deepCopy(value) : value;
+											try {
+												watch.fn(value, ((last === initWatchVal) ? value : last), current);
+											} catch (e) {
+												$exceptionHandler(e);
+											}
 											// if (ttl < 5) {
 											// 	logIdx = 4 - ttl;
 											// 	if (!watchLog[logIdx]) watchLog[logIdx] = [];
@@ -15929,15 +15953,13 @@ function $RootScopeProvider() {
 											// 	});
 											// }
 										} else if (watch === lastDirtyWatch) {
-											// If the most recently dirty watcher is now clean, short circuit since the remaining watchers
+											// If the most recently dirty watcher  is now clean, short circuit since the remaining watchers
 											// have already been tested.
 											dirty = false;
 											break traverseScopesLoop;
 										}
 									}
-								} catch (e) {
-									$exceptionHandler(e);
-								}
+
 							}
 						}
 
@@ -25918,7 +25940,7 @@ var ngModelOptionsDirective = function() {
 		restrict: 'A',
 		controller: ['$scope', '$attrs', function($scope, $attrs) {
 			var that = this;
-			this.$options = copy($scope.$eval($attrs.ngModelOptions));
+			this.$options = $scope.$eval($attrs.ngModelOptions);
 			// Allow adding/overriding bound events
 			if (isDefined(this.$options.updateOn)) {
 				this.$options.updateOnDefault = false;
@@ -26455,7 +26477,7 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 					getViewValueFromOption: function(option) {
 						// If the viewValue could be an object that may be mutated by the application,
 						// we need to make a copy and not return the reference to the value on the option.
-						return trackBy ? angular.copy(option.viewValue) : option.viewValue;
+						return trackBy ? deepCopy(option.viewValue) : option.viewValue;
 					}
 				};
 			}

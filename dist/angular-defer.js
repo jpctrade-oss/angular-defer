@@ -250,6 +250,23 @@ function arrayRemove(array, value) {
 	}
 	return index;
 }
+function deepCopy(obj) {
+	var out, i;
+	if (toString.call(obj) === '[object Array]') {
+		out = [];
+		for (i = 0, len = obj.length; i < len; i++) {
+			out[i] = deepCopy(obj[i]);
+		}
+		return out;
+	} else if (typeof obj === 'object') {
+		out = {};
+		for (i in obj) {
+			out[i] = deepCopy(obj[i]);
+		}
+		return out;
+	}
+	return obj;
+}
 function copy(source, destination, stackSource, stackDest) {
 	if (isWindow(source) || isScope(source)) {
 		throw ngMinErr('cpws',
@@ -4776,7 +4793,7 @@ var locationPrototype = {
 					search = search.toString();
 					this.$$search = parseKeyValue(search);
 				} else if (isObject(search)) {
-					search = copy(search, {});
+					search = deepCopy(search, {});
 					forEachObject(search, function(value, key) {
 						if (value == null) delete search[key];
 					});
@@ -5417,7 +5434,7 @@ AST.prototype = {
 		} else if (this.expect('{')) {
 			primary = this.object();
 		} else if (this.constants.hasOwnProperty(this.peek().text)) {
-			primary = copy(this.constants[this.consume().text]);
+			primary = shallowCopy(this.constants[this.consume().text]);
 		} else if (this.peek().identifier) {
 			primary = this.identifier();
 		} else if (this.peek().constant) {
@@ -7254,7 +7271,6 @@ function $RootScopeProvider() {
 						if ((watchers = current.$$watchers)) {
 							length = watchers.length;
 							while (length--) {
-								try {
 									watch = watchers[length];
 									if (watch) {
 										if ((value = watch.get(current)) !== (last = watch.last) &&
@@ -7264,16 +7280,17 @@ function $RootScopeProvider() {
 															 && isNaN(value) && isNaN(last)))) {
 											dirty = true;
 											lastDirtyWatch = watch;
-											watch.last = watch.eq ? copy(value, null) : value;
-											watch.fn(value, ((last === initWatchVal) ? value : last), current);
+											watch.last = watch.eq ? deepCopy(value) : value;
+											try {
+												watch.fn(value, ((last === initWatchVal) ? value : last), current);
+											} catch (e) {
+												$exceptionHandler(e);
+											}
 										} else if (watch === lastDirtyWatch) {
 											dirty = false;
 											break traverseScopesLoop;
 										}
 									}
-								} catch (e) {
-									$exceptionHandler(e);
-								}
 							}
 						}
 						if (!(next = ((current.$$watchersCount && current.$$childHead) ||
@@ -9861,7 +9878,7 @@ var ngModelOptionsDirective = function() {
 		restrict: 'A',
 		controller: ['$scope', '$attrs', function($scope, $attrs) {
 			var that = this;
-			this.$options = copy($scope.$eval($attrs.ngModelOptions));
+			this.$options = $scope.$eval($attrs.ngModelOptions);
 			if (isDefined(this.$options.updateOn)) {
 				this.$options.updateOnDefault = false;
 				this.$options.updateOn = trim(this.$options.updateOn.replace(DEFAULT_REGEXP, function() {
@@ -10075,7 +10092,7 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 						return selectValueMap[getTrackByValue(value)];
 					},
 					getViewValueFromOption: function(option) {
-						return trackBy ? angular.copy(option.viewValue) : option.viewValue;
+						return trackBy ? deepCopy(option.viewValue) : option.viewValue;
 					}
 				};
 			}
