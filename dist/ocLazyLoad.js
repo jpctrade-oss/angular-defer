@@ -1,3 +1,4 @@
+
 (function() {
 	'use strict';
 	var regModules = ['ng'],
@@ -23,7 +24,6 @@
 				jsLoader, cssLoader, templatesLoader,
 				debug = false,
 				events = false;
-			init(angular.element(window.document));
 			this.$get = ['$log', '$q', '$templateCache', '$http', '$rootElement', '$rootScope', '$cacheFactory', '$interval', function($log, $q, $templateCache, $http, $rootElement, $rootScope, $cacheFactory, $interval) {
 				var instanceInjector,
 					filesCache = $cacheFactory('ocLazyLoad'),
@@ -31,9 +31,9 @@
 					useCssLoadPatch = false;
 				if(!debug) {
 					$log = {};
-					$log['error'] = angular.noop;
-					$log['warn'] = angular.noop;
-					$log['info'] = angular.noop;
+					$log.error = angular.noop;
+					$log.warn = angular.noop;
+					$log.info = angular.noop;
 				}
 				providers.getInstanceInjector = function() {
 					return (instanceInjector) ? instanceInjector : (instanceInjector = ($rootElement.data('$injector') || angular.injector()));
@@ -45,7 +45,7 @@
 					if(debug) {
 						$log.info(eventName, params);
 					}
-				}
+				};
 				var buildElement = function buildElement(type, path, params) {
 					var deferred = $q.defer(),
 						el, loaded,
@@ -78,16 +78,16 @@
 							deferred.reject(new Error('Requested type "' + type + '" is not known. Could not inject "' + path + '"'));
 							break;
 					}
-					el.onload = el['onreadystatechange'] = function(e) {
+					el.onload = el.onreadystatechange = function() {
 						if((el['readyState'] && !(/^c|loade/.test(el['readyState']))) || loaded) return;
-						el.onload = el['onreadystatechange'] = null
+						el.onload = el.onreadystatechange = null;
 						loaded = 1;
 						broadcast('ocLazyLoad.fileLoaded', path);
 						deferred.resolve();
-					}
-					el.onerror = function(e) {
+					};
+					el.onerror = function() {
 						deferred.reject(new Error('Unable to load ' + path));
-					}
+					};
 					el.async = params.serie ? 0 : 1;
 					var insertBeforeElem = anchor.lastChild;
 					if(params.insertBefore) {
@@ -97,7 +97,7 @@
 						}
 					}
 					anchor.insertBefore(el, insertBeforeElem);
-					if(type == 'css') {
+					if(type === 'css') {
 						if(!uaCssChecked) {
 							var ua = navigator.userAgent.toLowerCase();
 							if(/iP(hone|od|ad)/.test(navigator.platform)) {
@@ -107,7 +107,7 @@
 							} else if(ua.indexOf("android") > -1) { // Android < 4.4
 								var androidVersion = parseFloat(ua.slice(ua.indexOf("android") + 8));
 								useCssLoadPatch = androidVersion < 4.4;
-							} else if(ua.indexOf('safari') > -1 && ua.indexOf('chrome') == -1) {
+							} else if(ua.indexOf('safari') > -1 && ua.indexOf('chrome') === -1) {
 								var safariVersion = parseFloat(ua.match(/version\/([\.\d]+)/i)[1]);
 								useCssLoadPatch = safariVersion < 6;
 							}
@@ -128,7 +128,7 @@
 						}
 					}
 					return deferred.promise;
-				}
+				};
 				if(angular.isUndefined(jsLoader)) {
 					jsLoader = function(paths, callback, params) {
 						var promises = [];
@@ -140,7 +140,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					jsLoader.ocLazyLoadLoader = true;
 				}
 				if(angular.isUndefined(cssLoader)) {
@@ -154,7 +154,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					cssLoader.ocLazyLoadLoader = true;
 				}
 				if(angular.isUndefined(templatesLoader)) {
@@ -184,7 +184,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					templatesLoader.ocLazyLoadLoader = true;
 				}
 				var filesLoader = function(config, params) {
@@ -207,7 +207,7 @@
 						} else if(cachePromise) {
 							promises.push(cachePromise);
 						}
-					}
+					};
 					if(params.serie) {
 						pushFile(params.files.shift());
 					} else {
@@ -258,7 +258,7 @@
 					} else {
 						return $q.all(promises);
 					}
-				}
+				};
 				return {
 					getModuleConfig: function(moduleName) {
 						if(!angular.isString(moduleName)) {
@@ -286,7 +286,7 @@
 								isLoaded = !!moduleExists(module);
 							}
 							return isLoaded;
-						}
+						};
 						if(angular.isString(modulesNames)) {
 							modulesNames = [modulesNames];
 						}
@@ -411,12 +411,12 @@
 									}
 									return;
 								} else if(typeof requireEntry === 'object') {
-									if(requireEntry.hasOwnProperty('name') && requireEntry['name']) {
+									if(requireEntry.hasOwnProperty('name') && requireEntry.name) {
 										self.setModuleConfig(requireEntry);
-										moduleCache.push(requireEntry['name']);
+										moduleCache.push(requireEntry.name);
 									}
-									if(requireEntry.hasOwnProperty('css') && requireEntry['css'].length !== 0) {
-										angular.forEach(requireEntry['css'], function(path) {
+									if(requireEntry.hasOwnProperty('css') && requireEntry.css.length !== 0) {
+										angular.forEach(requireEntry.css, function(path) {
 											buildElement('css', path, localParams);
 										});
 									}
@@ -430,7 +430,7 @@
 								}
 							});
 							return $q.all(promisesList);
-						}
+						};
 						filesLoader(config, localParams).then(function success() {
 							if(moduleName === null) {
 								deferred.resolve(module);
@@ -499,7 +499,7 @@
 				restrict: 'A',
 				terminal: true,
 				priority: 1000,
-				compile: function(element, attrs) {
+				compile: function(element) {
 					var content = element[0].innerHTML;
 					element.html('');
 					return function($scope, $element, $attr) {
@@ -508,7 +508,7 @@
 							return model($scope) || $attr.ocLazyLoad;
 						}, function(moduleName) {
 							if(angular.isDefined(moduleName)) {
-								$ocLazyLoad.load(moduleName).then(function success(moduleConfig) {
+								$ocLazyLoad.load(moduleName).then(function success() {
 									$animate.enter($compile(content)($scope), null, $element);
 								});
 							}
@@ -540,7 +540,7 @@
 			return angular.module(moduleName);
 		} catch(e) {
 			if(/No module/.test(e) || (e.message.indexOf('$injector:nomod') > -1)) {
-				e.message = 'The module "' + moduleName + '" that you are trying to load does not exist. ' + e.message
+				e.message = 'The module "' + moduleName + '" that you are trying to load does not exist. ' + e.message;
 			}
 			throw e;
 		}
@@ -576,7 +576,7 @@
 								provider[args[1]].apply(provider, args[2]);
 							}
 						}
-					}
+					};
 					if(angular.isFunction(args[2][0])) {
 						callInvoke(args[2][0]);
 					} else if(angular.isArray(args[2][0])) {
@@ -592,7 +592,7 @@
 	}
 	function register(providers, registerModules, params) {
 		if(registerModules) {
-			var k, r, moduleName, moduleFn, tempRunBlocks = [];
+			var k, moduleName, moduleFn, tempRunBlocks = [];
 			for(k = registerModules.length - 1; k >= 0; k--) {
 				moduleName = registerModules[k];
 				if(typeof moduleName !== 'string') {
@@ -642,11 +642,11 @@
 			newInvoke = true;
 			regInvokes[moduleName][type].push(invokeName);
 			broadcast('ocLazyLoad.componentLoaded', [moduleName, type, invokeName]);
-		}
+		};
 		if(angular.isString(invokeList) && regInvokes[moduleName][type].indexOf(invokeList) === -1) {
 			onInvoke(invokeList);
 		} else if(angular.isObject(invokeList)) {
-			angular.forEach(invokeList, function(invoke) {
+			angular.forEachArray(invokeList, function(invoke) {
 				if(angular.isString(invoke) && regInvokes[moduleName][type].indexOf(invoke) === -1) {
 					onInvoke(invoke);
 				}
@@ -664,23 +664,6 @@
 			moduleName = module.name;
 		}
 		return moduleName;
-	}
-	function init(element) {
-		if(initModules.length === 0) {
-			throw 'No module found during bootstrap, unable to init ocLazyLoad';
-		}
-		var addReg = function addReg(moduleName) {
-			if(regModules.indexOf(moduleName) === -1) {
-				regModules.push(moduleName);
-				var mainModule = angular.module(moduleName);
-				invokeQueue(null, mainModule._invokeQueue, moduleName);
-				invokeQueue(null, mainModule._configBlocks, moduleName); // angular 1.3+
-				angular.forEachArray(mainModule.requires, addReg);
-			}
-		};
-		angular.forEachArray(initModules, function(moduleName) {
-			addReg(moduleName);
-		});
 	}
 	var bootstrap = angular.bootstrap;
 	angular.bootstrap = function(element, modules, config) {

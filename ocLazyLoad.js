@@ -1,3 +1,4 @@
+/* global angular: true */
 (function() {
 	'use strict';
 	var regModules = ['ng'],
@@ -26,7 +27,7 @@
 				events = false;
 
 			// Let's get the list of loaded modules & components
-			init(angular.element(window.document));
+			// init(angular.element(window.document));
 
 			this.$get = ['$log', '$q', '$templateCache', '$http', '$rootElement', '$rootScope', '$cacheFactory', '$interval', function($log, $q, $templateCache, $http, $rootElement, $rootScope, $cacheFactory, $interval) {
 				var instanceInjector,
@@ -36,9 +37,9 @@
 
 				if(!debug) {
 					$log = {};
-					$log['error'] = angular.noop;
-					$log['warn'] = angular.noop;
-					$log['info'] = angular.noop;
+					$log.error = angular.noop;
+					$log.warn = angular.noop;
+					$log.info = angular.noop;
 				}
 
 				// Make this lazy because at the moment that $get() is called the instance injector hasn't been assigned to the rootElement yet
@@ -53,7 +54,7 @@
 					if(debug) {
 						$log.info(eventName, params);
 					}
-				}
+				};
 
 				/**
 				 * Load a js/css file
@@ -99,16 +100,16 @@
 							deferred.reject(new Error('Requested type "' + type + '" is not known. Could not inject "' + path + '"'));
 							break;
 					}
-					el.onload = el['onreadystatechange'] = function(e) {
+					el.onload = el.onreadystatechange = function() {
 						if((el['readyState'] && !(/^c|loade/.test(el['readyState']))) || loaded) return;
-						el.onload = el['onreadystatechange'] = null
+						el.onload = el.onreadystatechange = null;
 						loaded = 1;
 						broadcast('ocLazyLoad.fileLoaded', path);
 						deferred.resolve();
-					}
-					el.onerror = function(e) {
+					};
+					el.onerror = function() {
 						deferred.reject(new Error('Unable to load ' + path));
-					}
+					};
 					el.async = params.serie ? 0 : 1;
 
 					var insertBeforeElem = anchor.lastChild;
@@ -126,7 +127,7 @@
 					 - Android < 4.4 (default mobile browser)
 					 - Safari < 6    (desktop browser)
 					 */
-					if(type == 'css') {
+					if(type === 'css') {
 						if(!uaCssChecked) {
 							var ua = navigator.userAgent.toLowerCase();
 
@@ -138,7 +139,7 @@
 							} else if(ua.indexOf("android") > -1) { // Android < 4.4
 								var androidVersion = parseFloat(ua.slice(ua.indexOf("android") + 8));
 								useCssLoadPatch = androidVersion < 4.4;
-							} else if(ua.indexOf('safari') > -1 && ua.indexOf('chrome') == -1) {
+							} else if(ua.indexOf('safari') > -1 && ua.indexOf('chrome') === -1) {
 								var safariVersion = parseFloat(ua.match(/version\/([\.\d]+)/i)[1]);
 								useCssLoadPatch = safariVersion < 6;
 							}
@@ -161,7 +162,7 @@
 					}
 
 					return deferred.promise;
-				}
+				};
 
 				if(angular.isUndefined(jsLoader)) {
 					/**
@@ -182,7 +183,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					jsLoader.ocLazyLoadLoader = true;
 				}
 
@@ -205,7 +206,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					cssLoader.ocLazyLoadLoader = true;
 				}
 
@@ -244,7 +245,7 @@
 						}, function error(err) {
 							callback(err);
 						});
-					}
+					};
 					templatesLoader.ocLazyLoadLoader = true;
 				}
 
@@ -270,7 +271,7 @@
 						} else if(cachePromise) {
 							promises.push(cachePromise);
 						}
-					}
+					};
 
 					if(params.serie) {
 						pushFile(params.files.shift());
@@ -326,7 +327,7 @@
 					} else {
 						return $q.all(promises);
 					}
-				}
+				};
 
 				return {
 					/**
@@ -377,7 +378,7 @@
 								isLoaded = !!moduleExists(module);
 							}
 							return isLoaded;
-						}
+						};
 						if(angular.isString(modulesNames)) {
 							modulesNames = [modulesNames];
 						}
@@ -539,16 +540,16 @@
 									}
 									return;
 								} else if(typeof requireEntry === 'object') {
-									if(requireEntry.hasOwnProperty('name') && requireEntry['name']) {
+									if(requireEntry.hasOwnProperty('name') && requireEntry.name) {
 										// The dependency doesn't exist in the module cache and is a new configuration, so store and push it.
 										self.setModuleConfig(requireEntry);
-										moduleCache.push(requireEntry['name']);
+										moduleCache.push(requireEntry.name);
 									}
 
 									// CSS Loading Handler
-									if(requireEntry.hasOwnProperty('css') && requireEntry['css'].length !== 0) {
+									if(requireEntry.hasOwnProperty('css') && requireEntry.css.length !== 0) {
 										// Locate the document insertion point
-										angular.forEach(requireEntry['css'], function(path) {
+										angular.forEach(requireEntry.css, function(path) {
 											buildElement('css', path, localParams);
 										});
 									}
@@ -567,7 +568,7 @@
 
 							// Create a wrapper promise to watch the promise list and resolve it once everything is done.
 							return $q.all(promisesList);
-						}
+						};
 
 						filesLoader(config, localParams).then(function success() {
 							if(moduleName === null) {
@@ -646,7 +647,7 @@
 				restrict: 'A',
 				terminal: true,
 				priority: 1000,
-				compile: function(element, attrs) {
+				compile: function(element) {
 					// we store the content and remove it before compilation
 					var content = element[0].innerHTML;
 					element.html('');
@@ -658,7 +659,7 @@
 							return model($scope) || $attr.ocLazyLoad;
 						}, function(moduleName) {
 							if(angular.isDefined(moduleName)) {
-								$ocLazyLoad.load(moduleName).then(function success(moduleConfig) {
+								$ocLazyLoad.load(moduleName).then(function success() {
 									$animate.enter($compile(content)($scope), null, $element);
 								});
 							}
@@ -704,7 +705,7 @@
 		} catch(e) {
 			// this error message really suxx
 			if(/No module/.test(e) || (e.message.indexOf('$injector:nomod') > -1)) {
-				e.message = 'The module "' + moduleName + '" that you are trying to load does not exist. ' + e.message
+				e.message = 'The module "' + moduleName + '" that you are trying to load does not exist. ' + e.message;
 			}
 			throw e;
 		}
@@ -742,7 +743,7 @@
 								provider[args[1]].apply(provider, args[2]);
 							}
 						}
-					}
+					};
 					if(angular.isFunction(args[2][0])) {
 						callInvoke(args[2][0]);
 					} else if(angular.isArray(args[2][0])) {
@@ -765,7 +766,7 @@
 	 */
 	function register(providers, registerModules, params) {
 		if(registerModules) {
-			var k, r, moduleName, moduleFn, tempRunBlocks = [];
+			var k, moduleName, moduleFn, tempRunBlocks = [];
 			for(k = registerModules.length - 1; k >= 0; k--) {
 				moduleName = registerModules[k];
 				if(typeof moduleName !== 'string') {
@@ -823,11 +824,11 @@
 			newInvoke = true;
 			regInvokes[moduleName][type].push(invokeName);
 			broadcast('ocLazyLoad.componentLoaded', [moduleName, type, invokeName]);
-		}
+		};
 		if(angular.isString(invokeList) && regInvokes[moduleName][type].indexOf(invokeList) === -1) {
 			onInvoke(invokeList);
 		} else if(angular.isObject(invokeList)) {
-			angular.forEach(invokeList, function(invoke) {
+			angular.forEachArray(invokeList, function(invoke) {
 				if(angular.isString(invoke) && regInvokes[moduleName][type].indexOf(invoke) === -1) {
 					onInvoke(invoke);
 				}
@@ -852,64 +853,64 @@
 	 * Get the list of existing registered modules
 	 * @param element
 	 */
-	function init(element) {
-		// if(initModules.length === 0) {
-		//   var elements = [element],
-		//     names = ['ng:app', 'ng-app', 'x-ng-app', 'data-ng-app'],
-		//     NG_APP_CLASS_REGEXP = /\sng[:\-]app(:\s*([\w\d_]+);?)?\s/,
-		//     append = function append(elm) {
-		//       return (elm && elements.push(elm));
-		//     };
+	// function init() {
+	// 	// if(initModules.length === 0) {
+	// 	//   var elements = [element],
+	// 	//     names = ['ng:app', 'ng-app', 'x-ng-app', 'data-ng-app'],
+	// 	//     NG_APP_CLASS_REGEXP = /\sng[:\-]app(:\s*([\w\d_]+);?)?\s/,
+	// 	//     append = function append(elm) {
+	// 	//       return (elm && elements.push(elm));
+	// 	//     };
 
-		//   angular.forEach(names, function(name) {
-		//     names[name] = true;
-		//     append(document.getElementById(name));
-		//     name = name.replace(':', '\\:');
-		//     if(element[0].querySelectorAll) {
-		//       angular.forEach(element[0].querySelectorAll('.' + name), append);
-		//       angular.forEach(element[0].querySelectorAll('.' + name + '\\:'), append);
-		//       angular.forEach(element[0].querySelectorAll('[' + name + ']'), append);
-		//     }
-		//   });
+	// 	//   angular.forEach(names, function(name) {
+	// 	//     names[name] = true;
+	// 	//     append(document.getElementById(name));
+	// 	//     name = name.replace(':', '\\:');
+	// 	//     if(element[0].querySelectorAll) {
+	// 	//       angular.forEach(element[0].querySelectorAll('.' + name), append);
+	// 	//       angular.forEach(element[0].querySelectorAll('.' + name + '\\:'), append);
+	// 	//       angular.forEach(element[0].querySelectorAll('[' + name + ']'), append);
+	// 	//     }
+	// 	//   });
 
-		//   angular.forEach(elements, function(elm) {
-		//     if(initModules.length === 0) {
-		//       var className = ' ' + element.className + ' ';
-		//       var match = NG_APP_CLASS_REGEXP.exec(className);
-		//       if(match) {
-		//         initModules.push((match[2] || '').replace(/\s+/g, ','));
-		//       } else {
-		//         angular.forEach(elm.attributes, function(attr) {
-		//           if(initModules.length === 0 && names[attr.name]) {
-		//             initModules.push(attr.value);
-		//           }
-		//         });
-		//       }
-		//     }
-		//   });
-		// }
-		if(initModules.length === 0) {
-			throw 'No module found during bootstrap, unable to init ocLazyLoad';
-		}
+	// 	//   angular.forEach(elements, function(elm) {
+	// 	//     if(initModules.length === 0) {
+	// 	//       var className = ' ' + element.className + ' ';
+	// 	//       var match = NG_APP_CLASS_REGEXP.exec(className);
+	// 	//       if(match) {
+	// 	//         initModules.push((match[2] || '').replace(/\s+/g, ','));
+	// 	//       } else {
+	// 	//         angular.forEach(elm.attributes, function(attr) {
+	// 	//           if(initModules.length === 0 && names[attr.name]) {
+	// 	//             initModules.push(attr.value);
+	// 	//           }
+	// 	//         });
+	// 	//       }
+	// 	//     }
+	// 	//   });
+	// 	// }
+	// 	if(initModules.length === 0) {
+	// 		throw 'No module found during bootstrap, unable to init ocLazyLoad';
+	// 	}
 
-		var addReg = function addReg(moduleName) {
-			if(regModules.indexOf(moduleName) === -1) {
-				// register existing modules
-				regModules.push(moduleName);
-				var mainModule = angular.module(moduleName);
+	// 	var addReg = function addReg(moduleName) {
+	// 		if(regModules.indexOf(moduleName) === -1) {
+	// 			// register existing modules
+	// 			regModules.push(moduleName);
+	// 			var mainModule = angular.module(moduleName);
 
-				// register existing components (directives, services, ...)
-				invokeQueue(null, mainModule._invokeQueue, moduleName);
-				invokeQueue(null, mainModule._configBlocks, moduleName); // angular 1.3+
+	// 			// register existing components (directives, services, ...)
+	// 			invokeQueue(null, mainModule._invokeQueue, moduleName);
+	// 			invokeQueue(null, mainModule._configBlocks, moduleName); // angular 1.3+
 
-				angular.forEachArray(mainModule.requires, addReg);
-			}
-		};
+	// 			angular.forEachArray(mainModule.requires, addReg);
+	// 		}
+	// 	};
 
-		angular.forEachArray(initModules, function(moduleName) {
-			addReg(moduleName);
-		});
-	}
+	// 	angular.forEachArray(initModules, function(moduleName) {
+	// 		addReg(moduleName);
+	// 	});
+	// }
 
 	var bootstrap = angular.bootstrap;
 	angular.bootstrap = function(element, modules, config) {
