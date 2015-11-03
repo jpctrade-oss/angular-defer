@@ -15935,7 +15935,7 @@ function $RootScopeProvider() {
 														? equals(value, last)
 														: (typeof value === 'number' && typeof last === 'number'
 															 && isNaN(value) && isNaN(last)))) {
-											dirty = true;
+											// dirty = true;
 											lastDirtyWatch = watch;
 											watch.last = watch.eq ? deepCopy(value) : value;
 											try {
@@ -15952,11 +15952,11 @@ function $RootScopeProvider() {
 											// 		oldVal: last
 											// 	});
 											// }
-										} else if (watch === lastDirtyWatch) {
-											// If the most recently dirty watcher  is now clean, short circuit since the remaining watchers
-											// have already been tested.
-											dirty = false;
-											break traverseScopesLoop;
+										// } else if (watch === lastDirtyWatch) {
+										// 	// If the most recently dirty watcher  is now clean, short circuit since the remaining watchers
+										// 	// have already been tested.
+										// 	dirty = false;
+										// 	break traverseScopesLoop;
 										}
 									}
 

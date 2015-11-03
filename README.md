@@ -25,3 +25,4 @@ to differentiate click and browser back button.
 - modified `asyncQueue` to use `unshift, pop` instead of `push, shift`
 - modified `while(x.length) x.shift()` into `for` array
 - changed angular.copy to custom deepCopy that used in $digest and few more places
+- run $digest once, not 2+ times

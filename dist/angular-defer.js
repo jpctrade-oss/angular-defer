@@ -7278,7 +7278,6 @@ function $RootScopeProvider() {
 														? equals(value, last)
 														: (typeof value === 'number' && typeof last === 'number'
 															 && isNaN(value) && isNaN(last)))) {
-											dirty = true;
 											lastDirtyWatch = watch;
 											watch.last = watch.eq ? deepCopy(value) : value;
 											try {
@@ -7286,9 +7285,6 @@ function $RootScopeProvider() {
 											} catch (e) {
 												$exceptionHandler(e);
 											}
-										} else if (watch === lastDirtyWatch) {
-											dirty = false;
-											break traverseScopesLoop;
 										}
 									}
 							}
