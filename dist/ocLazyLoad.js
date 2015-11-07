@@ -9,6 +9,15 @@
 		runBlocks = {},
 		ocLazyLoad = angular.module('oc.lazyLoad', ['ng']),
 		broadcast = angular.noop;
+	function forEachArray(arr, fn, context) {
+		if (!arr) { return; }
+		if (arr.forEach) {
+			return arr.forEach(fn);
+		}
+		for (var i = 0, l = arr.length; i < l; i++) {
+			fn.call(context, arr[i], i);
+		}
+	}
 	ocLazyLoad.provider('$ocLazyLoad', ['$controllerProvider', '$provide', '$compileProvider', '$filterProvider', '$injector', '$animateProvider',
 		function($controllerProvider, $provide, $compileProvider, $filterProvider, $injector, $animateProvider) {
 			var modules = {},
@@ -132,7 +141,7 @@
 				if(angular.isUndefined(jsLoader)) {
 					jsLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function loading(path) {
+						forEachArray(paths, function loading(path) {
 							promises.push(buildElement('js', path, params));
 						});
 						$q.all(promises).then(function success() {
@@ -146,7 +155,7 @@
 				if(angular.isUndefined(cssLoader)) {
 					cssLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function loading(path) {
+						forEachArray(paths, function loading(path) {
 							promises.push(buildElement('css', path, params));
 						});
 						$q.all(promises).then(function success() {
@@ -160,7 +169,7 @@
 				if(angular.isUndefined(templatesLoader)) {
 					templatesLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function(url) {
+						forEachArray(paths, function(url) {
 							var deferred = $q.defer();
 							promises.push(deferred.promise);
 							$http.get(url, params).success(function(data) {
@@ -211,7 +220,7 @@
 					if(params.serie) {
 						pushFile(params.files.shift());
 					} else {
-						angular.forEachArray(params.files, function(path) {
+						forEachArray(params.files, function(path) {
 							pushFile(path);
 						});
 					}
@@ -314,7 +323,7 @@
 							params = {};
 						}
 						if(angular.isArray(module)) {
-							angular.forEachArray(module, function(m) {
+							forEachArray(module, function(m) {
 								if(m) {
 									deferredList.push(self.load(m, params));
 								}
@@ -388,7 +397,7 @@
 								}
 								requires = getRequires(loadedModule);
 							}
-							angular.forEachArray(requires, function(requireEntry) {
+							forEachArray(requires, function(requireEntry) {
 								if(typeof requireEntry === 'string') {
 									var config = self.getModuleConfig(requireEntry);
 									if(config === null) {
@@ -478,7 +487,7 @@
 				}
 				if(angular.isDefined(config.modules)) {
 					if(angular.isArray(config.modules)) {
-						angular.forEachArray(config.modules, function(moduleConfig) {
+						forEachArray(config.modules, function(moduleConfig) {
 							modules[moduleConfig.name] = moduleConfig;
 						});
 					} else {
@@ -519,7 +528,7 @@
 		}]);
 	function getRequires(module) {
 		var requires = [];
-		angular.forEachArray(module.requires, function(requireModule) {
+		forEachArray(module.requires, function(requireModule) {
 			if(regModules.indexOf(requireModule) === -1) {
 				requires.push(requireModule);
 			}
@@ -623,7 +632,7 @@
 				justLoaded.push(moduleName);
 			}
 			var instanceInjector = providers.getInstanceInjector();
-			angular.forEachArray(tempRunBlocks, function(fn) {
+			forEachArray(tempRunBlocks, function(fn) {
 				instanceInjector.invoke(fn);
 			});
 		}
@@ -646,7 +655,7 @@
 		if(angular.isString(invokeList) && regInvokes[moduleName][type].indexOf(invokeList) === -1) {
 			onInvoke(invokeList);
 		} else if(angular.isObject(invokeList)) {
-			angular.forEachArray(invokeList, function(invoke) {
+			forEachArray(invokeList, function(invoke) {
 				if(angular.isString(invoke) && regInvokes[moduleName][type].indexOf(invoke) === -1) {
 					onInvoke(invoke);
 				}

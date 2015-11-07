@@ -10,6 +10,16 @@
 		ocLazyLoad = angular.module('oc.lazyLoad', ['ng']),
 		broadcast = angular.noop;
 
+	function forEachArray(arr, fn, context) {
+		if (!arr) { return; }
+		if (arr.forEach) {
+			return arr.forEach(fn);
+		}
+		for (var i = 0, l = arr.length; i < l; i++) {
+			fn.call(context, arr[i], i);
+		}
+	}
+
 	ocLazyLoad.provider('$ocLazyLoad', ['$controllerProvider', '$provide', '$compileProvider', '$filterProvider', '$injector', '$animateProvider',
 		function($controllerProvider, $provide, $compileProvider, $filterProvider, $injector, $animateProvider) {
 			var modules = {},
@@ -175,7 +185,7 @@
 					 */
 					jsLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function loading(path) {
+						forEachArray(paths, function loading(path) {
 							promises.push(buildElement('js', path, params));
 						});
 						$q.all(promises).then(function success() {
@@ -198,7 +208,7 @@
 					 */
 					cssLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function loading(path) {
+						forEachArray(paths, function loading(path) {
 							promises.push(buildElement('css', path, params));
 						});
 						$q.all(promises).then(function success() {
@@ -221,7 +231,7 @@
 					 */
 					templatesLoader = function(paths, callback, params) {
 						var promises = [];
-						angular.forEachArray(paths, function(url) {
+						forEachArray(paths, function(url) {
 							var deferred = $q.defer();
 							promises.push(deferred.promise);
 							$http.get(url, params).success(function(data) {
@@ -276,7 +286,7 @@
 					if(params.serie) {
 						pushFile(params.files.shift());
 					} else {
-						angular.forEachArray(params.files, function(path) {
+						forEachArray(params.files, function(path) {
 							pushFile(path);
 						});
 					}
@@ -417,7 +427,7 @@
 						// If module is an array, break it down
 						if(angular.isArray(module)) {
 							// Resubmit each entry as a single module
-							angular.forEachArray(module, function(m) {
+							forEachArray(module, function(m) {
 								if(m) {
 									deferredList.push(self.load(m, params));
 								}
@@ -508,7 +518,7 @@
 								requires = getRequires(loadedModule);
 							}
 
-							angular.forEachArray(requires, function(requireEntry) {
+							forEachArray(requires, function(requireEntry) {
 								// If no configuration is provided, try and find one from a previous load.
 								// If there isn't one, bail and let the normal flow run
 								if(typeof requireEntry === 'string') {
@@ -623,7 +633,7 @@
 				// If we want to define modules configs
 				if(angular.isDefined(config.modules)) {
 					if(angular.isArray(config.modules)) {
-						angular.forEachArray(config.modules, function(moduleConfig) {
+						forEachArray(config.modules, function(moduleConfig) {
 							modules[moduleConfig.name] = moduleConfig;
 						});
 					} else {
@@ -676,7 +686,7 @@
 	 */
 	function getRequires(module) {
 		var requires = [];
-		angular.forEachArray(module.requires, function(requireModule) {
+		forEachArray(module.requires, function(requireModule) {
 			if(regModules.indexOf(requireModule) === -1) {
 				requires.push(requireModule);
 			}
@@ -799,7 +809,7 @@
 			}
 			// execute the run blocks at the end
 			var instanceInjector = providers.getInstanceInjector();
-			angular.forEachArray(tempRunBlocks, function(fn) {
+			forEachArray(tempRunBlocks, function(fn) {
 				instanceInjector.invoke(fn);
 			});
 		}
@@ -828,7 +838,7 @@
 		if(angular.isString(invokeList) && regInvokes[moduleName][type].indexOf(invokeList) === -1) {
 			onInvoke(invokeList);
 		} else if(angular.isObject(invokeList)) {
-			angular.forEachArray(invokeList, function(invoke) {
+			forEachArray(invokeList, function(invoke) {
 				if(angular.isString(invoke) && regInvokes[moduleName][type].indexOf(invoke) === -1) {
 					onInvoke(invoke);
 				}
@@ -903,11 +913,11 @@
 	// 			invokeQueue(null, mainModule._invokeQueue, moduleName);
 	// 			invokeQueue(null, mainModule._configBlocks, moduleName); // angular 1.3+
 
-	// 			angular.forEachArray(mainModule.requires, addReg);
+	// 			forEachArray(mainModule.requires, addReg);
 	// 		}
 	// 	};
 
-	// 	angular.forEachArray(initModules, function(moduleName) {
+	// 	forEachArray(initModules, function(moduleName) {
 	// 		addReg(moduleName);
 	// 	});
 	// }
