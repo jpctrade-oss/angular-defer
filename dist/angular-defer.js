@@ -6556,7 +6556,7 @@ function $ParseProvider() {
 					csp: noUnsafeEval,
 					expensiveChecks: true
 				};
-		return function $parse(exp, interceptorFn, expensiveChecks) {
+		return function $parse(exp, interceptorFn, expensiveChecks, useAST) {
 			var parsedExpression, oneTime, cacheKey;
 			switch (typeof exp) {
 				case 'string':
@@ -6565,14 +6565,23 @@ function $ParseProvider() {
 					var cache = (expensiveChecks ? cacheExpensive : cacheDefault);
 					parsedExpression = cache[cacheKey];
 					if (!parsedExpression) {
+						if (exp[0] === '*') {
+							useAST = true;
+							exp = exp.substring(1);
+						}
 						if (exp.charAt(0) === ':' && exp.charAt(1) === ':') {
 							oneTime = true;
 							exp = exp.substring(2);
 						}
-						var parseOptions = expensiveChecks ? $parseOptionsExpensive : $parseOptions;
-						var lexer = new Lexer(parseOptions);
-						var parser = new Parser(lexer, $filter, parseOptions);
-						parsedExpression = parser.parse(exp);
+						console.log('$parse', exp, interceptorFn, expensiveChecks, useAST);
+						if (useAST) {
+							var parseOptions = expensiveChecks ? $parseOptionsExpensive : $parseOptions;
+							var lexer = new Lexer(parseOptions);
+							var parser = new Parser(lexer, $filter, parseOptions);
+							parsedExpression = parser.parse(exp);
+						} else {
+							parsedExpression = evalExpr(exp);
+						}
 						if (parsedExpression.constant) {
 							parsedExpression.$$watchDelegate = constantWatchDelegate;
 						} else if (oneTime) {
@@ -6970,6 +6979,34 @@ function $$RAFProvider() { //rAF
 		raf.supported = rafSupported;
 		return raf;
 	}];
+}
+var EVAL_RE = /([$a-zA-Z_][$\w.]*|(?:"[^"]*"|'[^']*'|[^$a-zA-Z_'"]+)+)/g;
+function evalExpr(expr) {
+	var newFn, matches;
+	console.log('expr', [expr], arguments);
+	if (/^[\d.]+$/.test(expr)) {
+		newFn = Function('return ' + expr);
+		newFn.constant = 1;
+		return newFn;
+	}
+	var matches = expr.replace(/\|\|/g, '_XX_').replace(/\|.*/, '').replace(/_XX_/g, '||').match(EVAL_RE) || [];
+	console.log('expr matches', matches);
+	var match, next, prev;
+	for (var i = 0; i < matches.length; i++) {
+		match = matches[i], next = matches[i + 1];
+		console.log('expr individual', match, next);
+		if (match === 'null' || match === '$event') continue;
+		if (/[$a-zA-Z]/.test(match[0]) && (!next || next.trim()[0] !== ':')) {
+			if (i) {
+				prev = matches[i-1];
+				if (prev[prev.length-1] === '.') continue;
+			}
+			matches[i] = 'S.' + matches[i];
+		}
+	}
+	console.log('expr fnStr', [matches.join('')]);
+	newFn = new Function('S', 'X', 'if(X)console.log(X);var $event=X&&X.$event;return ' + matches.join(''));
+	return newFn;
 }
 function $RootScopeProvider() {
 	var TTL = 10;
@@ -8750,9 +8787,9 @@ var formDirectiveFactory = function(isNgForm) {
 		return formDirective;
 		function getSetter(expression) {
 			if (expression === '') {
-				return $parse('this[""]').assign;
+				return $parse('this[""]', 0, 0, 1).assign;
 			}
-			return $parse(expression).assign || noop;
+			return $parse(expression, 0, 0, 1).assign || noop;
 		}
 	}];
 };
@@ -9333,7 +9370,9 @@ forEachArray(
 				compile: function($element, attr) {
 					return function ngEventHandler(scope, element) {
 						element.on(eventName, function(event) {
-							scope.$evalAsync(attr[directiveName], {$event: event});
+							scope.$evalAsync((attr[directiveName][0] !== '*' ? '*' : '') + attr[directiveName], {
+								$event: event
+							});
 						});
 					};
 				}
@@ -9537,7 +9576,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 	this.$pending = undefined; // keep pending keys here
 	this.$name = $interpolate($attr.name || '', false)($scope);
 	this.$$parentForm = nullFormCtrl;
-	var parsedNgModel = $parse($attr.ngModel),
+	var parsedNgModel = $parse($attr.ngModel, 0, 0, 1),
 			parsedNgModelAssign = parsedNgModel.assign,
 			ngModelGet = parsedNgModel,
 			ngModelSet = parsedNgModelAssign,
@@ -9547,8 +9586,8 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 	this.$$setOptions = function(options) {
 		ctrl.$options = options;
 		if (options && options.getterSetter) {
-			var invokeModelGetter = $parse($attr.ngModel + '()'),
-					invokeModelSetter = $parse($attr.ngModel + '($$$p)');
+			var invokeModelGetter = $parse($attr.ngModel + '()', 0, 0, 1),
+					invokeModelSetter = $parse($attr.ngModel + '($$$p)', 0, 0, 1);
 			ngModelGet = function($scope) {
 				var modelValue = parsedNgModel($scope);
 				if (isFunction(modelValue)) {
@@ -9991,20 +10030,20 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 		var keyName = match[6];
 		var selectAs = / as /.test(match[0]) && match[1];
 		var trackBy = match[9];
-		var valueFn = $parse(match[2] ? match[1] : valueName);
-		var selectAsFn = selectAs && $parse(selectAs);
+		var valueFn = $parse(match[2] ? match[1] : valueName, 0, 0, 1);
+		var selectAsFn = selectAs && $parse(selectAs, 0, 0, 1);
 		var viewValueFn = selectAsFn || valueFn;
-		var trackByFn = trackBy && $parse(trackBy);
+		var trackByFn = trackBy && $parse(trackBy, 0, 0, 1);
 		var getTrackByValueFn = trackBy ?
 															function(value, locals) { return trackByFn(scope, locals); } :
 															function getHashOfValue(value) { return hashKey(value); };
 		var getTrackByValue = function(value, key) {
 			return getTrackByValueFn(value, getLocals(value, key));
 		};
-		var displayFn = $parse(match[2] || match[1]);
-		var groupByFn = $parse(match[3] || '');
-		var disableWhenFn = $parse(match[4] || '');
-		var valuesFn = $parse(match[8]);
+		var displayFn = $parse(match[2] || match[1], 0, 0, 1);
+		var groupByFn = $parse(match[3] || '', 0, 0, 1);
+		var disableWhenFn = $parse(match[4] || '', 0, 0, 1);
+		var valuesFn = $parse(match[8], 0, 0, 1);
 		var locals = {};
 		var getLocals = keyName ? function(value, key) {
 			locals[keyName] = key;
