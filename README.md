@@ -26,3 +26,4 @@ to differentiate click and browser back button.
 - modified `while(x.length) x.shift()` into `for` array
 - changed angular.copy to custom deepCopy that used in $digest and few more places
 - run $digest once, not 2+ times
+- changed to parse url with regex instead of node

@@ -1707,6 +1707,7 @@ function annotate(fn, strictDi, name) {
 			$inject = [];
 			if (fn.length) {
 				if (strictDi) {
+					if (msie) { return; }
 					if (!isString(name) || !name) {
 						name = fn.name || anonFn(fn);
 					}
@@ -4610,8 +4611,7 @@ function parseAppUrl(relativeUrl, locationObj) {
 		relativeUrl = '/' + relativeUrl;
 	}
 	var match = urlResolve(relativeUrl);
-	locationObj.$$path = decodeURIComponent(prefixed && match.pathname.charAt(0) === '/' ?
-			match.pathname.substring(1) : match.pathname);
+	locationObj.$$path = decodeURIComponent(match.pathname);
 	locationObj.$$search = parseKeyValue(match.search);
 	locationObj.$$hash = decodeURIComponent(match.hash);
 	if (locationObj.$$path && locationObj.$$path.charAt(0) != '/') {
@@ -4781,7 +4781,7 @@ var locationPrototype = {
 	host: locationGetter('$$host'),
 	port: locationGetter('$$port'),
 	path: locationGetterSetter('$$path', function(path) {
-		path = path !== null ? path.toString() : '';
+		path = path !== null && path.toString() || '/';
 		return path.charAt(0) === '/' ? path : '/' + path;
 	}),
 	search: function(search, paramValue) {
@@ -7905,26 +7905,31 @@ function $TimeoutProvider() {
 		return timeout;
 	}];
 }
-var urlParsingNode = document.createElement("a");
+var URL_PARSE_RE = /^(https|http):\/\/(([\w.-]+)(?::(\d+))?)(?:\/#!)?(\/?[^?#]*)(?:\?([^#]+))?(?:#(.*))?$/;
+var BASE_URL;
 var originUrl = urlResolve(window.location.href);
 function urlResolve(url) {
-	var href = url;
-	if (msie) {
-		urlParsingNode.setAttribute("href", href);
-		href = urlParsingNode.href;
+	if (url[0] === '/') {
+		url = BASE_URL + url;
+	} else if (url.slice(0,4) !== 'http') {
+		url = BASE_URL + '/' + url;
 	}
-	urlParsingNode.setAttribute('href', href);
+	var m = URL_PARSE_RE.exec(url);
+	if (!m) {
+		return window.console.error('unsupported url: ' + url);
+	}
+	if (!BASE_URL) {
+		BASE_URL = m[1] + '://' + m[2];
+	}
 	return {
-		href: urlParsingNode.href,
-		protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
-		host: urlParsingNode.host,
-		search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
-		hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
-		hostname: urlParsingNode.hostname,
-		port: urlParsingNode.port,
-		pathname: (urlParsingNode.pathname.charAt(0) === '/')
-			? urlParsingNode.pathname
-			: '/' + urlParsingNode.pathname
+		href: m[0],
+		protocol: m[1],
+		host: m[2],
+		hostname: m[3],
+		port: m[4],
+		pathname: m[5] || '/',
+		search: m[6] || '',
+		hash: m[7] || ''
 	};
 }
 function urlIsSameOrigin(requestUrl) {
