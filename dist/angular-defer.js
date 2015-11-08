@@ -954,8 +954,8 @@ function cssCamelCase(name) {
 		.replace(MOZ_HACK_REGEXP, 'Moz$1');
 }
 var SINGLE_TAG_REGEXP = /^<([\w-]+)\s*\/?>(?:<\/\1>|)$/;
-var HTML_REGEXP = /<|&#?\w+;/;
-var TAG_NAME_REGEXP = /<([\w:-]+)/;
+var HTML_REGEXP = /&#?\w+;/;
+var TAG_NAME_REGEXP = /^<([\w:-]+)/;
 var XHTML_TAG_REGEXP = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:-]+)[^>]*)\/>/gi;
 var wrapMap = {
 	'option': [1, '<select multiple="multiple">', '</select>'],
@@ -969,6 +969,7 @@ wrapMap.optgroup = wrapMap.option;
 wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
 wrapMap.th = wrapMap.td;
 function jqLiteIsTextNode(html) {
+	if (html.indexOf('<') >= 0) return;
 	return !HTML_REGEXP.test(html);
 }
 function jqLiteAcceptsData(node) {
@@ -981,31 +982,25 @@ function jqLiteHasData(node) {
 	}
 	return false;
 }
+var tmpNode;
 function jqLiteBuildFragment(html, context) {
-	var tmp, tag, wrap,
-			fragment = context.createDocumentFragment(),
-			nodes = [], i;
+	var wrap;
+	tmpNode = tmpNode || context.createElement("div");
+	var tmp = tmpNode;
 	if (jqLiteIsTextNode(html)) {
-		nodes.push(context.createTextNode(html));
+		tmp.appendChild(context.createTextNode(html));
 	} else {
-		tmp = tmp || fragment.appendChild(context.createElement("div"));
-		tag = (TAG_NAME_REGEXP.exec(html) || ["", ""])[1].toLowerCase();
-		wrap = wrapMap[tag] || wrapMap._default;
-		tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
-		i = wrap[0];
-		while (i--) {
-			tmp = tmp.lastChild;
+		if (TAG_NAME_REGEXP.test(html) && (wrap = wrapMap[RegExp.$1.toLowerCase()])) {
+			tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
+			var i = wrap[0];
+			while (i--) {
+				tmp = tmp.lastChild;
+			}
+		} else {
+			tmp.innerHTML = html.replace(XHTML_TAG_REGEXP, "<$1></$2>");
 		}
-		nodes = concat(nodes, tmp.childNodes);
-		tmp = fragment.firstChild;
-		tmp.textContent = "";
 	}
-	fragment.textContent = "";
-	fragment.innerHTML = ""; // Clear inner HTML
-	forEach(nodes, function(node) {
-		fragment.appendChild(node);
-	});
-	return fragment;
+	return tmp;
 }
 function jqLiteParseHTML(html, context) {
 	context = context || document;
@@ -6563,7 +6558,6 @@ function $ParseProvider() {
 				};
 		return function $parse(exp, interceptorFn, expensiveChecks) {
 			var parsedExpression, oneTime, cacheKey;
-			console.log([exp, interceptorFn, expensiveChecks]);
 			switch (typeof exp) {
 				case 'string':
 					exp = exp.trim();
@@ -7907,7 +7901,6 @@ function $TimeoutProvider() {
 }
 var URL_PARSE_RE = /^(https|http):\/\/(([\w.-]+)(?::(\d+))?)(?:\/#!)?(\/?[^?#]*)(?:\?([^#]+))?(?:#(.*))?$/;
 var BASE_URL;
-var originUrl = urlResolve(window.location.href);
 function urlResolve(url) {
 	if (url[0] === '/') {
 		url = BASE_URL + url;
@@ -7932,6 +7925,7 @@ function urlResolve(url) {
 		hash: m[7] || ''
 	};
 }
+var originUrl = urlResolve(window.location.href);
 function urlIsSameOrigin(requestUrl) {
 	var parsed = (isString(requestUrl)) ? urlResolve(requestUrl) : requestUrl;
 	return (parsed.protocol === originUrl.protocol &&

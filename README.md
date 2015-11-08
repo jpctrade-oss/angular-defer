@@ -27,3 +27,4 @@ to differentiate click and browser back button.
 - changed angular.copy to custom deepCopy that used in $digest and few more places
 - run $digest once, not 2+ times
 - changed to parse url with regex instead of node
+- chore jqLiteBuildFragment and HTMLRegex

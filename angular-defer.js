@@ -2733,8 +2733,8 @@ function cssCamelCase(name) {
 }
 
 var SINGLE_TAG_REGEXP = /^<([\w-]+)\s*\/?>(?:<\/\1>|)$/;
-var HTML_REGEXP = /<|&#?\w+;/;
-var TAG_NAME_REGEXP = /<([\w:-]+)/;
+var HTML_REGEXP = /&#?\w+;/;
+var TAG_NAME_REGEXP = /^<([\w:-]+)/;
 var XHTML_TAG_REGEXP = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:-]+)[^>]*)\/>/gi;
 
 var wrapMap = {
@@ -2753,6 +2753,7 @@ wrapMap.th = wrapMap.td;
 
 
 function jqLiteIsTextNode(html) {
+	if (html.indexOf('<') >= 0) return;
 	return !HTML_REGEXP.test(html);
 }
 
@@ -2770,41 +2771,46 @@ function jqLiteHasData(node) {
 	return false;
 }
 
+var tmpNode;
 function jqLiteBuildFragment(html, context) {
-	var tmp, tag, wrap,
-			fragment = context.createDocumentFragment(),
-			nodes = [], i;
+	var wrap;
+		//fragment = context.createDocumentFragment(),
+	tmpNode = tmpNode || context.createElement("div");
+	var tmp = tmpNode;
 
 	if (jqLiteIsTextNode(html)) {
 		// Convert non-html into a text node
-		nodes.push(context.createTextNode(html));
+		//nodes.push(context.createTextNode(html));
+		tmp.appendChild(context.createTextNode(html));
 	} else {
 		// Convert html into DOM nodes
-		tmp = tmp || fragment.appendChild(context.createElement("div"));
-		tag = (TAG_NAME_REGEXP.exec(html) || ["", ""])[1].toLowerCase();
-		wrap = wrapMap[tag] || wrapMap._default;
-		tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
 
-		// Descend through wrappers to the right content
-		i = wrap[0];
-		while (i--) {
-			tmp = tmp.lastChild;
+		if (TAG_NAME_REGEXP.test(html) && (wrap = wrapMap[RegExp.$1.toLowerCase()])) {
+			tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
+			// Descend through wrappers to the right content
+			var i = wrap[0];
+			while (i--) {
+				tmp = tmp.lastChild;
+			}
+		} else {
+			tmp.innerHTML = html.replace(XHTML_TAG_REGEXP, "<$1></$2>");
 		}
 
-		nodes = concat(nodes, tmp.childNodes);
+		// nodes = concat(nodes, tmp.childNodes);
 
-		tmp = fragment.firstChild;
-		tmp.textContent = "";
+		// tmp = fragment.firstChild;
+		// tmp.textContent = "";
 	}
+	return tmp;
 
 	// Remove wrapper from fragment
-	fragment.textContent = "";
-	fragment.innerHTML = ""; // Clear inner HTML
-	forEach(nodes, function(node) {
-		fragment.appendChild(node);
-	});
+	// fragment.textContent = "";
+	// fragment.innerHTML = ""; // Clear inner HTML
+	// forEach(nodes, function(node) {
+	// 	fragment.appendChild(node);
+	// });
 
-	return fragment;
+	// return fragment;
 }
 
 function jqLiteParseHTML(html, context) {
@@ -14327,7 +14333,7 @@ function $ParseProvider() {
 
 		return function $parse(exp, interceptorFn, expensiveChecks) {
 			var parsedExpression, oneTime, cacheKey;
-			console.log([exp, interceptorFn, expensiveChecks]);
+			// console.log([exp, interceptorFn, expensiveChecks]);
 
 			switch (typeof exp) {
 				case 'string':
@@ -18027,8 +18033,34 @@ function $TimeoutProvider() {
 //href,protocol,host,hostname,port,pathname,search,hash
 var URL_PARSE_RE = /^(https|http):\/\/(([\w.-]+)(?::(\d+))?)(?:\/#!)?(\/?[^?#]*)(?:\?([^#]+))?(?:#(.*))?$/;
 var BASE_URL;
-var originUrl = urlResolve(window.location.href);
 
+function urlResolve(url) {
+	if (url[0] === '/') {
+		url = BASE_URL + url;
+	} else if (url.slice(0,4) !== 'http') {
+		url = BASE_URL + '/' + url;
+	}
+	var m = URL_PARSE_RE.exec(url);
+	if (!m) {
+		return window.console.error('unsupported url: ' + url);
+	}
+	if (!BASE_URL) {
+		BASE_URL = m[1] + '://' + m[2];
+	}
+
+	return {
+		href: m[0],
+		protocol: m[1],
+		host: m[2],
+		hostname: m[3],
+		port: m[4],
+		pathname: m[5] || '/',
+		search: m[6] || '',
+		hash: m[7] || ''
+	};
+}
+
+var originUrl = urlResolve(window.location.href);
 
 /**
  *
@@ -18076,31 +18108,6 @@ var originUrl = urlResolve(window.location.href);
  *
  */
 
-function urlResolve(url) {
-	if (url[0] === '/') {
-		url = BASE_URL + url;
-	} else if (url.slice(0,4) !== 'http') {
-		url = BASE_URL + '/' + url;
-	}
-	var m = URL_PARSE_RE.exec(url);
-	if (!m) {
-		return window.console.error('unsupported url: ' + url);
-	}
-	if (!BASE_URL) {
-		BASE_URL = m[1] + '://' + m[2];
-	}
-
-	return {
-		href: m[0],
-		protocol: m[1],
-		host: m[2],
-		hostname: m[3],
-		port: m[4],
-		pathname: m[5] || '/',
-		search: m[6] || '',
-		hash: m[7] || ''
-	};
-}
 // function urlResolve(url) {
 // 	window.console.log('urlResolve', [url]);
 // 	var href = url;
