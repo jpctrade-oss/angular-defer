@@ -7299,14 +7299,13 @@ function $RootScopeProvider() {
 					}
 				} while (dirty || asyncQueue.length);
 				clearPhase();
-				for (i = 0; i < postDigestQueue.length; i++) {
+				while (postDigestQueue.length) {
 					try {
-						postDigestQueue[i]();
+						postDigestQueue.shift()();
 					} catch (e) {
 						$exceptionHandler(e);
 					}
 				}
-				postDigestQueue.length = 0;
 			},
 			$destroy: function() {
 				if (this.$$destroyed) return;
