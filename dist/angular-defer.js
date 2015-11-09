@@ -6543,6 +6543,15 @@ var objectValueOf = Object.prototype.valueOf;
 function getValueOf(value) {
 	return isFunction(value.valueOf) ? value.valueOf() : objectValueOf.call(value);
 }
+function hasFilter(input) {
+	var pos = input.indexOf('|');
+	while (pos !== -1) {
+		if (input[pos+1] && input[pos+1] !== '|') {
+			return true;
+		}
+		pos = input.indexOf('|', pos+2);
+	}
+}
 function $ParseProvider() {
 	var cacheDefault = createMap();
 	var cacheExpensive = createMap();
@@ -6568,6 +6577,9 @@ function $ParseProvider() {
 						if (exp[0] === '*') {
 							useAST = true;
 							exp = exp.substring(1);
+						}
+						if (!useAST && hasFilter(exp)) {
+							useAST = true;
 						}
 						if (exp.charAt(0) === ':' && exp.charAt(1) === ':') {
 							oneTime = true;
@@ -6988,7 +7000,7 @@ function evalExpr(expr) {
 		newFn.constant = 1;
 		return newFn;
 	}
-	var matches = expr.replace(/\|\|/g, '_XX_').replace(/\|.*/, '').replace(/_XX_/g, '||').match(EVAL_RE) || [];
+	var matches = expr.match(EVAL_RE) || [];
 	console.log('expr matches', matches);
 	var match, next, prev;
 	for (var i = 0; i < matches.length; i++) {
