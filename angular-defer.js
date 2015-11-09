@@ -3833,7 +3833,7 @@ function annotate(fn, strictDi, name) {
 			$inject = [];
 			if (fn.length) {
 				if (strictDi) {
-					if (msie) { return; }
+					if (msie) { return $inject; }
 					if (!isString(name) || !name) {
 						name = fn.name || anonFn(fn);
 					}
@@ -14353,7 +14353,7 @@ function $ParseProvider() {
 							oneTime = true;
 							exp = exp.substring(2);
 						}
-						console.log('$parse', exp, interceptorFn, expensiveChecks, useAST);
+						//console.log('$parse', exp, interceptorFn, expensiveChecks, useAST);
 
 						if (useAST) {
 							var parseOptions = expensiveChecks ? $parseOptionsExpensive : $parseOptions;
@@ -15198,7 +15198,7 @@ function evalExpr(expr) {
 	}
 	console.log('expr fnStr', [matches.join('')]);
 	//support $event;
-	newFn = new Function('S', 'X', 'if(X)console.log(X);var $event=X&&X.$event;return ' + matches.join(''));
+	newFn = new Function('S', 'X', 'var $event=X&&X.$event;return ' + matches.join(''));
 	// console.log('expr fn', newFn);
 	return newFn;
 }
