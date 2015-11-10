@@ -15188,7 +15188,7 @@ var EVAL_RE = /([$a-zA-Z_][$\w.]*|(?:"[^"]*"|'[^']*'|[^$a-zA-Z_'"]+)+)/g;
 function evalExpr(expr) {
 	var newFn, matches;
 	console.log('expr', [expr], arguments);
-	if (/^[\d.]+$/.test(expr)) {
+	if (/^[\d.]+|null$/.test(expr)) {
 		newFn = Function('return ' + expr);
 		newFn.constant = 1;
 		return newFn;
@@ -23750,7 +23750,7 @@ forEachArray(
 	["click", "dblclick", "mousedown", "mouseup", "mouseover", "mouseout", "mousemove", "mouseenter", "mouseleave", "keydown", "keyup", "keypress", "submit", "focus", "blur", "copy", "cut", "paste"],
 	function(eventName) {
 		var directiveName = directiveNormalize('ng-' + eventName);
-		ngEventDirectives[directiveName] = ['$parse', '$rootScope', function($parse, $rootScope) {
+		ngEventDirectives[directiveName] = function() {
 			return {
 				restrict: 'A',
 				compile: function($element, attr) {
@@ -23776,7 +23776,7 @@ forEachArray(
 					};
 				}
 			};
-		}];
+		};
 	}
 );
 
@@ -24492,7 +24492,7 @@ var ngIfDirective = ['$animate', function($animate) {
 var ngIncludeDirective = ['$templateRequest', '$anchorScroll', '$animate',
 									function($templateRequest,   $anchorScroll,   $animate) {
 	return {
-		restrict: 'EA',
+		restrict: 'A',
 		priority: 400,
 		terminal: true,
 		transclude: 'element',
@@ -24583,7 +24583,7 @@ var ngIncludeDirective = ['$templateRequest', '$anchorScroll', '$animate',
 var ngIncludeFillContentDirective = ['$compile',
 	function($compile) {
 		return {
-			restrict: 'EA',
+			restrict: 'A',
 			priority: -400,
 			require: 'ngInclude',
 			link: function(scope, $element, $attr, ctrl) {
@@ -28350,7 +28350,7 @@ var ngSwitchDefaultDirective = ngDirective({
  *
  */
 var ngTranscludeDirective = ngDirective({
-	restrict: 'EA',
+	restrict: 'A',
 	link: function($scope, $element, $attrs, controller, $transclude) {
 		if (!$transclude) {
 			throw minErr('ngTransclude')('orphan',
