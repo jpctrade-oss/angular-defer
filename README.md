@@ -28,3 +28,4 @@ to differentiate click and browser back button.
 - run $digest once, not 2+ times
 - changed to parse url with regex instead of node
 - chore jqLiteBuildFragment and HTMLRegex
+- removed unknownOption from ngOptions, so I can use blank option tag as is.

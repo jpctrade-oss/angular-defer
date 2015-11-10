@@ -14365,7 +14365,7 @@ function $ParseProvider() {
 							oneTime = true;
 							exp = exp.substring(2);
 						}
-						//console.log('$parse', exp, interceptorFn, expensiveChecks, useAST);
+						console.log('$parse', exp, interceptorFn, expensiveChecks, useAST);
 
 						if (useAST) {
 							var parseOptions = expensiveChecks ? $parseOptionsExpensive : $parseOptions;
@@ -26607,16 +26607,17 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 			// option when the viewValue does not match any of the option values.
 			var emptyOption;
 			for (var i = 0, children = selectElement.children(), ii = children.length; i < ii; i++) {
-				if (children[i].value === '') {
+				if (!children[i].value) {
 					emptyOption = children.eq(i);
 					break;
 				}
 			}
 
 			var providedEmptyOption = !!emptyOption;
+			// console.log('select', attr.ngModel, providedEmptyOption);
 
-			var unknownOption = jqLite(optionTemplate.cloneNode(false));
-			unknownOption.val('?');
+			// var unknownOption = jqLite(optionTemplate.cloneNode(false));
+			// unknownOption.val('?');
 
 			var options;
 			var ngOptions = parseOptionsExpression(attr.ngOptions, selectElement, scope);
@@ -26638,16 +26639,16 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 			};
 
 
-			var renderUnknownOption = function() {
-				selectElement.prepend(unknownOption);
-				selectElement.val('?');
-				unknownOption.prop('selected', true); // needed for IE
-				unknownOption.attr('selected', true);
-			};
+			// var renderUnknownOption = function() {
+			// 	// selectElement.prepend(unknownOption);
+			// 	// selectElement.val('?');
+			// 	// unknownOption.prop('selected', true); // needed for IE
+			// 	// unknownOption.attr('selected', true);
+			// };
 
-			var removeUnknownOption = function() {
-				unknownOption.remove();
-			};
+			// var removeUnknownOption = function() {
+			// 	// unknownOption.remove();
+			// };
 
 
 			// Update the controller methods for multiple selectable options
@@ -26658,7 +26659,7 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 
 					if (option && !option.disabled) {
 						if (selectElement[0].value !== option.selectValue) {
-							removeUnknownOption();
+							// removeUnknownOption();
 							removeEmptyOption();
 
 							selectElement[0].value = option.selectValue;
@@ -26667,11 +26668,11 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 						}
 					} else {
 						if (value === null || providedEmptyOption) {
-							removeUnknownOption();
+							//removeUnknownOption();
 							renderEmptyOption();
 						} else {
 							removeEmptyOption();
-							renderUnknownOption();
+							//renderUnknownOption();
 						}
 					}
 				};
@@ -26682,7 +26683,7 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 
 					if (selectedOption && !selectedOption.disabled) {
 						removeEmptyOption();
-						removeUnknownOption();
+						// removeUnknownOption();
 						return options.getViewValueFromOption(selectedOption);
 					}
 					return null;
@@ -26755,11 +26756,11 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 				emptyOption.remove();
 
 				// compile the element since there might be bindings in it
-				$compile(emptyOption)(scope);
+				// $compile(emptyOption)(scope);
 
 				// remove the class, which is added automatically because we recompile the element and it
 				// becomes the compilation root
-				emptyOption.removeClass('ng-scope');
+				// emptyOption.removeClass('ng-scope');
 			} else {
 				emptyOption = jqLite(optionTemplate.cloneNode(false));
 			}
@@ -26822,12 +26823,14 @@ var ngOptionsDirective = ['$compile', '$parse', function($compile, $parse) {
 
 			function skipEmptyAndUnknownOptions(current) {
 				var emptyOption_ = emptyOption && emptyOption[0];
-				var unknownOption_ = unknownOption && unknownOption[0];
+				// var unknownOption_ = unknownOption && unknownOption[0];
 
-				if (emptyOption_ || unknownOption_) {
+				if (emptyOption_ 
+					// || unknownOption_
+					) {
 					while (current &&
 								(current === emptyOption_ ||
-								current === unknownOption_ ||
+								// current === unknownOption_ ||
 								emptyOption_ && emptyOption_.nodeType === NODE_TYPE_COMMENT)) {
 						// Empty options might have directives that transclude
 						// and insert comments (e.g. ngIf)
@@ -28437,28 +28440,28 @@ var SelectController =
 	//
 	// We can't just jqLite('<option>') since jqLite is not smart enough
 	// to create it in <select> and IE barfs otherwise.
-	self.unknownOption = jqLite(document.createElement('option'));
-	self.renderUnknownOption = function(val) {
-		var unknownVal = '? ' + hashKey(val) + ' ?';
-		self.unknownOption.val(unknownVal);
-		$element.prepend(self.unknownOption);
-		$element.val(unknownVal);
-	};
+	// self.unknownOption = jqLite(document.createElement('option'));
+	// self.renderUnknownOption = function(val) {
+	// 	var unknownVal = '? ' + hashKey(val) + ' ?';
+	// 	self.unknownOption.val(unknownVal);
+	// 	$element.prepend(self.unknownOption);
+	// 	$element.val(unknownVal);
+	// };
 
-	$scope.$on('$destroy', function() {
-		// disable unknown option so that we don't do work when the whole select is being destroyed
-		self.renderUnknownOption = noop;
-	});
+	// $scope.$on('$destroy', function() {
+	// 	// disable unknown option so that we don't do work when the whole select is being destroyed
+	// 	self.renderUnknownOption = noop;
+	// });
 
-	self.removeUnknownOption = function() {
-		if (self.unknownOption.parent()) self.unknownOption.remove();
-	};
+	// self.removeUnknownOption = function() {
+	// 	if (self.unknownOption.parent()) self.unknownOption.remove();
+	// };
 
 
 	// Read the value of the select control, the implementation of this changes depending
 	// upon whether the select can have multiple values and whether ngOptions is at work.
 	self.readValue = function readSingleValue() {
-		self.removeUnknownOption();
+		// self.removeUnknownOption();
 		return $element.val();
 	};
 
@@ -28467,15 +28470,15 @@ var SelectController =
 	// upon whether the select can have multiple values and whether ngOptions is at work.
 	self.writeValue = function writeSingleValue(value) {
 		if (self.hasOption(value)) {
-			self.removeUnknownOption();
+			// self.removeUnknownOption();
 			$element.val(value);
 			if (value === '') self.emptyOption.prop('selected', true); // to make IE9 happy
 		} else {
 			if (value == null && self.emptyOption) {
-				self.removeUnknownOption();
+				// self.removeUnknownOption();
 				$element.val('');
-			} else {
-				self.renderUnknownOption(value);
+			// } else {
+			// 	self.renderUnknownOption(value);
 			}
 		}
 	};
