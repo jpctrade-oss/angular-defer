@@ -63,7 +63,7 @@ function minErr(module, ErrorConstructor) {
 			return match;
 		});
 
-		message += '\nhttp://errors.angularjs.org/1.4.7/' +
+		message += '\nhttp://errors.angularjs.org/1.4.8/' +
 			(module ? module + '/' : '') + code;
 
 		for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
