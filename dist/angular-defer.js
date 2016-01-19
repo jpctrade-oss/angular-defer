@@ -280,7 +280,7 @@ function copy(source, destination) {
 		if (isArray(destination)) {
 			destination.length = 0;
 		} else {
-			forEach(destination, function(value, key) {
+			forEachObject(destination, function(value, key) {
 				if (key !== '$$hashKey') {
 					delete destination[key];
 				}
