@@ -21,7 +21,7 @@ function minErr(module, ErrorConstructor) {
 			}
 			return match;
 		});
-		message += '\nhttp://errors.angularjs.org/1.4.8/' +
+		message += '\nhttp://errors.angularjs.org/1.4.9/' +
 			(module ? module + '/' : '') + code;
 		for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
 			message += paramPrefix + 'p' + (i - SKIP_INDEXES) + '=' +
@@ -791,11 +791,11 @@ function toDebugString(obj) {
 	return obj;
 }
 var version = {
-	full: '1.4.8',    // all of these placeholder strings will be replaced by grunt's
+	full: '1.4.9',    // all of these placeholder strings will be replaced by grunt's
 	major: 1,    // package task
 	minor: 4,
-	dot: 8,
-	codeName: 'ice-manipulation'
+	dot: 9,
+	codeName: 'implicit-superannuation'
 };
 function publishExternalAPI(angular) {
 	extend(angular, {
@@ -988,7 +988,7 @@ function jqLiteHasData(node) {
 	}
 	return false;
 }
-var tmpNode;
+var tmpNode; //javascript is single threaded right?
 function jqLiteBuildFragment(html, context) {
 	var wrap;
 	tmpNode = tmpNode || context.createElement("div");
@@ -2479,6 +2479,7 @@ function $CacheFactoryProvider() {
 						link(lruEntry.n,lruEntry.p);
 						delete lruHash[key];
 					}
+					if (!(key in data)) return;
 					delete data[key];
 					size--;
 				},
@@ -3469,11 +3470,11 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 						}
 					});
 					afterTemplateChildLinkFn = compileNodes($compileNode[0].childNodes, childTranscludeFn);
-					for (var i = 0; i < linkQueue.length; i++) {
-						var scope = linkQueue[i][0];
-						if (scope.$$destroyed) continue;
-						var beforeTemplateLinkNode = linkQueue[i][1],
-							boundTranscludeFn = linkQueue[i][3],
+					while (linkQueue.length) {
+						var lq = linkQueue.shift();
+						if (lq[0].$$destroyed) continue;
+						var beforeTemplateLinkNode = lq[1],
+							boundTranscludeFn = lq[3],
 							linkNode = $compileNode[0];
 						if (beforeTemplateLinkNode !== beforeTemplateCompileNode) {
 							var oldClasses = beforeTemplateLinkNode.className;
@@ -3481,15 +3482,16 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 									origAsyncDirective.replace)) {
 								linkNode = jqLiteClone(compileNode);
 							}
-							replaceWith(linkQueue[i][2], jqLite(beforeTemplateLinkNode), linkNode);
+							replaceWith(lq[2], jqLite(beforeTemplateLinkNode), linkNode);
 							safeAddClass(jqLite(linkNode), oldClasses);
 						}
 						if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
-							childBoundTranscludeFn = createBoundTranscludeFn(scope, afterTemplateNodeLinkFn.transclude, boundTranscludeFn);
+							childBoundTranscludeFn = createBoundTranscludeFn(lq[0], afterTemplateNodeLinkFn.transclude,
+								boundTranscludeFn);
 						} else {
 							childBoundTranscludeFn = boundTranscludeFn;
 						}
-						afterTemplateNodeLinkFn(afterTemplateChildLinkFn, scope, linkNode, $rootElement,
+						afterTemplateNodeLinkFn(afterTemplateChildLinkFn, lq[0], linkNode, $rootElement,
 							childBoundTranscludeFn, afterTemplateNodeLinkFn);
 					}
 					linkQueue = null;
@@ -3498,10 +3500,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				var childBoundTranscludeFn = boundTranscludeFn;
 				if (scope.$$destroyed) return;
 				if (linkQueue) {
-					linkQueue[linkQueue.length] = [scope,
+					linkQueue.push = ([scope,
 												 node,
 												 rootElement,
-												 childBoundTranscludeFn];
+												 childBoundTranscludeFn]);
 				} else {
 					if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
 						childBoundTranscludeFn = createBoundTranscludeFn(scope, afterTemplateNodeLinkFn.transclude, boundTranscludeFn);
@@ -3636,7 +3638,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			var fragment = document.createDocumentFragment();
 			fragment.appendChild(firstElementToRemove);
 			if (jqLite.hasData(firstElementToRemove)) {
-				jqLite(newNode).data(jqLite(firstElementToRemove).data());
+				jqLite.data(newNode, jqLite.data(firstElementToRemove));
 				if (!jQuery) {
 					delete jqLite.cache[firstElementToRemove[jqLite.expando]];
 				} else {
@@ -4072,6 +4074,9 @@ function $HttpProvider() {
 		function $http(requestConfig) {
 			if (!angular.isObject(requestConfig)) {
 				throw minErr('$http')('badreq', 'Http request configuration must be an object.  Received: {0}', requestConfig);
+			}
+			if (!isString(requestConfig.url)) {
+				throw minErr('$http')('badreq', 'Http request configuration url must be a string.  Received: {0}', requestConfig.url);
 			}
 			var config = extend({
 				method: 'get',
@@ -4955,6 +4960,7 @@ function $LocationProvider() {
 				var oldUrl = $location.absUrl();
 				var oldState = $location.$$state;
 				var defaultPrevented;
+				newUrl = trimEmptyHash(newUrl);
 				$location.$$parse(newUrl);
 				$location.$$state = newState;
 				defaultPrevented = $rootScope.$broadcast('$locationChangeStart', newUrl, oldUrl,
@@ -5990,7 +5996,7 @@ ASTCompiler.prototype = {
 			right = this.nextId();
 			left = {};
 			if (!isAssignable(ast.left)) {
-				throw $parseMinErr('lval', 'Trying to assing a value to a non l-value');
+				throw $parseMinErr('lval', 'Trying to assign a value to a non l-value');
 			}
 			this.recurse(ast.left, undefined, left, function() {
 				self.if_(self.notNull(left.context), function() {
@@ -6540,8 +6546,6 @@ Parser.prototype = {
 		return this.astCompiler.compile(text, this.options.expensiveChecks);
 	}
 };
-var getterFnCacheDefault = createMap();
-var getterFnCacheExpensive = createMap();
 function isPossiblyDangerousMemberName(name) {
 	return name === 'constructor';
 }
@@ -7055,6 +7059,14 @@ function $RootScopeProvider() {
 		function destroyChildScope($event) {
 				$event.currentScope.$$destroyed = true;
 		}
+		function cleanUpScope($scope) {
+			if (msie === 9) {
+				$scope.$$childHead && cleanUpScope($scope.$$childHead);
+				$scope.$$nextSibling && cleanUpScope($scope.$$nextSibling);
+			}
+			$scope.$parent = $scope.$$nextSibling = $scope.$$prevSibling = $scope.$$childHead =
+					$scope.$$childTail = $scope.$root = $scope.$$watchers = null;
+		}
 		function Scope() {
 			this.$id = nextUid();
 			this.$$phase = this.$parent = this.$$watchers =
@@ -7166,10 +7178,9 @@ function $RootScopeProvider() {
 					}
 				}
 				return function deregisterWatchGroup() {
-					for (var i = 0; i < deregisterFns.length; i++) {
-						deregisterFns[i]();
+					while (deregisterFns.length) {
+						deregisterFns.shift()();
 					}
-					deregisterFns.length = 0;
 				};
 			},
 			$watchCollection: function(obj, listener) {
@@ -7381,8 +7392,8 @@ function $RootScopeProvider() {
 				this.$destroy = this.$digest = this.$apply = this.$evalAsync = this.$applyAsync = noop;
 				this.$on = this.$watch = this.$watchGroup = function() { return noop; };
 				this.$$listeners = {};
-				this.$parent = this.$$nextSibling = this.$$prevSibling = this.$$childHead =
-						this.$$childTail = this.$root = this.$$watchers = null;
+				this.$$nextSibling = null;
+				cleanUpScope(this);
 			},
 			$eval: function(expr, locals) {
 				return $parse(expr)(this, locals);
@@ -7561,14 +7572,13 @@ function $RootScopeProvider() {
 		}
 		function initWatchVal() {}
 		function flushApplyAsync() {
-			for(var i = 0; i < applyAsyncQueue.length; i++) {
+			while (applyAsyncQueue.length) {
 				try {
-					applyAsyncQueue[i]();
+					applyAsyncQueue.shift()();
 				} catch (e) {
 					$exceptionHandler(e);
 				}
 			}
-			applyAsyncQueue.length = 0;
 			applyAsyncId = null;
 		}
 		function scheduleApplyAsync() {
@@ -8159,6 +8169,9 @@ function deepCompare(actual, expected, comparator, matchAgainstAnyProp, dontMatc
 function getTypeForFilter(val) {
 	return (val === null) ? 'null' : typeof val;
 }
+var MAX_DIGITS = 22;
+var DECIMAL_SEP = '.';
+var ZERO_CHAR = '0';
 currencyFilter.$inject = ['$locale'];
 function currencyFilter($locale) {
 	var formats = $locale.NUMBER_FORMATS;
@@ -8185,72 +8198,114 @@ function numberFilter($locale) {
 											 fractionSize);
 	};
 }
-var DECIMAL_SEP = '.';
-function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
-	if (isObject(number)) return '';
-	var isNegative = number < 0;
-	number = Math.abs(number);
-	var isInfinity = number === Infinity;
-	if (!isInfinity && !isFinite(number)) return '';
-	var numStr = number + '',
-			formatedText = '',
-			hasExponent = false,
-			parts = [];
-	if (isInfinity) formatedText = '\u221e';
-	if (!isInfinity && numStr.indexOf('e') !== -1) {
-		var match = numStr.match(/([\d\.]+)e(-?)(\d+)/);
-		if (match && match[2] === '-' && match[3] > fractionSize + 1) {
-			number = 0;
-		} else {
-			formatedText = numStr;
-			hasExponent = true;
-		}
+function parse(numStr) {
+	var exponent = 0, digits, numberOfIntegerDigits;
+	var i, j, zeros;
+	if ((numberOfIntegerDigits = numStr.indexOf(DECIMAL_SEP)) > -1) {
+		numStr = numStr.replace(DECIMAL_SEP, '');
 	}
-	if (!isInfinity && !hasExponent) {
-		var fractionLen = (numStr.split(DECIMAL_SEP)[1] || '').length;
-		if (isUndefined(fractionSize)) {
-			fractionSize = Math.min(Math.max(pattern.minFrac, fractionLen), pattern.maxFrac);
-		}
-		number = +(Math.round(+(number.toString() + 'e' + fractionSize)).toString() + 'e' + -fractionSize);
-		var fraction = ('' + number).split(DECIMAL_SEP);
-		var whole = fraction[0];
-		fraction = fraction[1] || '';
-		var i, pos = 0,
-				lgroup = pattern.lgSize,
-				group = pattern.gSize;
-		if (whole.length >= (lgroup + group)) {
-			pos = whole.length - lgroup;
-			for (i = 0; i < pos; i++) {
-				if ((pos - i) % group === 0 && i !== 0) {
-					formatedText += groupSep;
-				}
-				formatedText += whole.charAt(i);
-			}
-		}
-		for (i = pos; i < whole.length; i++) {
-			if ((whole.length - i) % lgroup === 0 && i !== 0) {
-				formatedText += groupSep;
-			}
-			formatedText += whole.charAt(i);
-		}
-		while (fraction.length < fractionSize) {
-			fraction += '0';
-		}
-		if (fractionSize && fractionSize !== "0") formatedText += decimalSep + fraction.substr(0, fractionSize);
+	if ((i = numStr.search(/e/i)) > 0) {
+		if (numberOfIntegerDigits < 0) numberOfIntegerDigits = i;
+		numberOfIntegerDigits += +numStr.slice(i + 1);
+		numStr = numStr.substring(0, i);
+	} else if (numberOfIntegerDigits < 0) {
+		numberOfIntegerDigits = numStr.length;
+	}
+	for (i = 0; numStr.charAt(i) == ZERO_CHAR; i++);
+	if (i == (zeros = numStr.length)) {
+		digits = [0];
+		numberOfIntegerDigits = 1;
 	} else {
-		if (fractionSize > 0 && number < 1) {
-			formatedText = number.toFixed(fractionSize);
-			number = parseFloat(formatedText);
-			formatedText = formatedText.replace(DECIMAL_SEP, decimalSep);
+		zeros--;
+		while (numStr.charAt(zeros) == ZERO_CHAR) zeros--;
+		numberOfIntegerDigits -= i;
+		digits = [];
+		for (j = 0; i <= zeros; i++, j++) {
+			digits[j] = +numStr.charAt(i);
 		}
 	}
-	if (number === 0) {
-		isNegative = false;
+	if (numberOfIntegerDigits > MAX_DIGITS) {
+		digits = digits.splice(0, MAX_DIGITS - 1);
+		exponent = numberOfIntegerDigits - 1;
+		numberOfIntegerDigits = 1;
 	}
-	parts.push(isNegative ? pattern.negPre : pattern.posPre,
-						 formatedText,
-						 isNegative ? pattern.negSuf : pattern.posSuf);
-	return parts.join('');
+	return { d: digits, e: exponent, i: numberOfIntegerDigits };
+}
+function roundNumber(parsedNumber, fractionSize, minFrac, maxFrac) {
+		var digits = parsedNumber.d;
+		var fractionLen = digits.length - parsedNumber.i;
+		fractionSize = (isUndefined(fractionSize)) ? Math.min(Math.max(minFrac, fractionLen), maxFrac) : +fractionSize;
+		var roundAt = fractionSize + parsedNumber.i;
+		var digit = digits[roundAt];
+		if (roundAt > 0) {
+			digits.splice(roundAt);
+		} else {
+			parsedNumber.i = 1;
+			digits.length = roundAt = fractionSize + 1;
+			for (var i=0; i < roundAt; i++) digits[i] = 0;
+		}
+		if (digit >= 5) digits[roundAt - 1]++;
+		for (; fractionLen < fractionSize; fractionLen++) digits.push(0);
+		var carry = digits.reduceRight(function(carry, d, i, digits) {
+			d = d + carry;
+			digits[i] = d % 10;
+			return Math.floor(d / 10);
+		}, 0);
+		if (carry) {
+			digits.unshift(carry);
+			parsedNumber.i++;
+		}
+}
+function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
+	if (!(isString(number) || isNumber(number)) || isNaN(number)) return '';
+	var isInfinity = !isFinite(number);
+	var isZero = false;
+	var numStr = Math.abs(number) + '',
+			formattedText = '',
+			parsedNumber;
+	if (isInfinity) {
+		formattedText = '\u221e';
+	} else {
+		parsedNumber = parse(numStr);
+		roundNumber(parsedNumber, fractionSize, pattern.minFrac, pattern.maxFrac);
+		var digits = parsedNumber.d;
+		var integerLen = parsedNumber.i;
+		var exponent = parsedNumber.e;
+		var decimals = [];
+		isZero = digits.reduce(function(isZero, d) { return isZero && !d; }, true);
+		while (integerLen < 0) {
+			digits.unshift(0);
+			integerLen++;
+		}
+		if (integerLen > 0) {
+			decimals = digits.splice(integerLen);
+		} else {
+			decimals = digits;
+			digits = [0];
+		}
+		var groups = [];
+		if (digits.length > pattern.lgSize) {
+			groups.unshift(digits.splice(-pattern.lgSize).join(''));
+		}
+		while (digits.length > pattern.gSize) {
+			groups.unshift(digits.splice(-pattern.gSize).join(''));
+		}
+		if (digits.length) {
+			groups.unshift(digits.join(''));
+		}
+		formattedText = groups.join(groupSep);
+		if (decimals.length) {
+			formattedText += decimalSep + decimals.join('');
+		}
+		if (exponent) {
+			formattedText += 'e+' + exponent;
+		}
+	}
+	if (number < 0 && !isZero) {
+		return pattern.negPre + formattedText + pattern.negSuf;
+	} else {
+		return pattern.posPre + formattedText + pattern.posSuf;
+	}
 }
 function padNumber(num, digits, trim) {
 	var neg = '';
@@ -8259,7 +8314,7 @@ function padNumber(num, digits, trim) {
 		num = -num;
 	}
 	num = '' + num;
-	while (num.length < digits) num = '0' + num;
+	while (num.length < digits) num = ZERO_CHAR + num;
 	if (trim) {
 		num = num.substr(num.length - digits);
 	}
@@ -8609,7 +8664,7 @@ forEachObject(ALIASED_ATTR, function(htmlAttr, ngAttr) {
 		};
 	};
 });
-forEachArray(['src', 'srcset', 'href'], function(attrName) {
+forEachArray(['src', 'href'], function(attrName) {
 	var normalized = directiveNormalize('ng-' + attrName);
 	ngAttributeAliasDirectives[normalized] = function() {
 		return {
@@ -8814,7 +8869,7 @@ var formDirectiveFactory = function(isNgForm) {
 var formDirective = formDirectiveFactory();
 var ngFormDirective = formDirectiveFactory(true);
 var ISO_DATE_REGEXP = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/;
-var URL_REGEXP = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
+var URL_REGEXP = /^(https|http):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
 var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
 var NUMBER_REGEXP = /^\s*(\-|\+)?(\d+|(\d*(\.\d*)))([eE][+-]?\d+)?\s*$/;
 var DATE_REGEXP = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -9484,6 +9539,7 @@ var ngIncludeDirective = ['$templateRequest', '$anchorScroll', '$animate',
 					var thisChangeId = ++changeCounter;
 					if (src) {
 						$templateRequest(src, true).then(function(response) {
+							if (scope.$$destroyed) return;
 							if (thisChangeId !== changeCounter) return;
 							var newScope = scope.$new();
 							ctrl.template = response;
@@ -9496,6 +9552,7 @@ var ngIncludeDirective = ['$templateRequest', '$anchorScroll', '$animate',
 							currentScope.$emit('$includeContentLoaded', src);
 							scope.$eval(onloadExp);
 						}, function() {
+							if (scope.$$destroyed) return;
 							if (thisChangeId === changeCounter) {
 								cleanupLastIncludeContent();
 								scope.$emit('$includeContentError', src);
@@ -9738,7 +9795,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 			forEachObject(ctrl.$asyncValidators, function(validator, name) {
 				var promise = validator(modelValue, viewValue);
 				if (!isPromiseLike(promise)) {
-					throw ngModelMinErr("$asyncValidators",
+					throw ngModelMinErr("nopromise",
 						"Expected asynchronous validator to return a promise but got '{0}' instead.", promise);
 				}
 				setValidity(name, undefined);
