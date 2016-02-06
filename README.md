@@ -21,9 +21,6 @@ to differentiate click and browser back button.
 - `useApplyAsync = true` by default in $http
 - check fast $version check for object and array for $watchCollection
 - dropped svg, math support
-- modified `linkQueue` not to use `.shift()`
-- modified `asyncQueue` to use `unshift, pop` instead of `push, shift`
-- modified `while(x.length) x.shift()` into `for` array
 - changed angular.copy to custom deepCopy that used in $digest and few more places
 - run $digest once, not 2+ times
 - changed to parse url with regex instead of node

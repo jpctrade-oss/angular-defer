@@ -21,7 +21,7 @@ function minErr(module, ErrorConstructor) {
 			}
 			return match;
 		});
-		message += '\nhttp://errors.angularjs.org/1.4.9/' +
+		message += '\nhttp://errors.angularjs.org/1.5.0/' +
 			(module ? module + '/' : '') + code;
 		for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
 			message += paramPrefix + 'p' + (i - SKIP_INDEXES) + '=' +
@@ -32,8 +32,8 @@ function minErr(module, ErrorConstructor) {
 }
 var REGEX_STRING_REGEXP = /^\/(.+)\/([a-z]*)$/;
 var VALIDITY_STATE_PROPERTY = 'validity';
-var lowercase = function(string) {return isString(string) ? string.toLowerCase() : string;};
 var hasOwnProperty = Object.prototype.hasOwnProperty;
+var lowercase = function(string) {return isString(string) ? string.toLowerCase() : string;};
 var uppercase = function(string) {return isString(string) ? string.toUpperCase() : string;};
 var
 		msie,             // holds major version number for IE, or NaN if UA is not IE.
@@ -120,7 +120,7 @@ function forEachSorted(obj, iterator, context) {
 	return keys;
 }
 function reverseParams(iteratorFn) {
-	return function(value, key) { iteratorFn(key, value); };
+	return function(value, key) {iteratorFn(key, value);};
 }
 function nextUid() {
 	return ++uid;
@@ -224,6 +224,9 @@ function isPromiseLike(obj) {
 var TYPED_ARRAY_REGEXP = /^\[object (?:Uint8|Uint8Clamped|Uint16|Uint32|Int8|Int16|Int32|Float32|Float64)Array\]$/;
 function isTypedArray(value) {
 	return value && isNumber(value.length) && TYPED_ARRAY_REGEXP.test(toString.call(value));
+}
+function isArrayBuffer(obj) {
+	return toString.call(obj) === '[object ArrayBuffer]';
 }
 var trim = function(value) {
 	return isString(value) ? value.trim() : value;
@@ -376,38 +379,36 @@ function equals(o1, o2) {
 	if (o1 === null || o2 === null) return false;
 	if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
 	var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-	if (t1 == t2) {
-		if (t1 === 'object') {
-			if (isArray(o1)) {
-				if (!isArray(o2)) return false;
-				if ((length = o1.length) === o2.length) {
-					for (key = 0; key < length; key++) {
-						if (!equals(o1[key], o2[key])) return false;
-					}
-					return true;
-				}
-			} else if (isDate(o1)) {
-				if (!isDate(o2)) return false;
-				return equals(o1.getTime(), o2.getTime());
-			} else if (isRegExp(o1)) {
-				return isRegExp(o2) ? o1.toString() === o2.toString() : false;
-			} else {
-				if (isScope(o1) || isScope(o2) || isWindow(o1) || isWindow(o2) ||
-					isArray(o2) || isDate(o2) || isRegExp(o2)) return false;
-				keySet = createMap();
-				for (key in o1) {
-					if (key.charAt(0) === '$' || isFunction(o1[key])) continue;
+	if (t1 === t2 && t1 === 'object') {
+		if (isArray(o1)) {
+			if (!isArray(o2)) return false;
+			if ((length = o1.length) === o2.length) {
+				for (key = 0; key < length; key++) {
 					if (!equals(o1[key], o2[key])) return false;
-					keySet[key] = true;
-				}
-				for (key in o2) {
-					if (!(key in keySet) &&
-							key.charAt(0) !== '$' &&
-							isDefined(o2[key]) &&
-							!isFunction(o2[key])) return false;
 				}
 				return true;
 			}
+		} else if (isDate(o1)) {
+			if (!isDate(o2)) return false;
+			return equals(o1.getTime(), o2.getTime());
+		} else if (isRegExp(o1)) {
+			return isRegExp(o2) ? o1.toString() === o2.toString() : false;
+		} else {
+			if (isScope(o1) || isScope(o2) || isWindow(o1) || isWindow(o2) ||
+				isArray(o2) || isDate(o2) || isRegExp(o2)) return false;
+			keySet = {};
+			for (key in o1) {
+				if (key.charAt(0) === '$' || isFunction(o1[key])) continue;
+				if (!equals(o1[key], o2[key])) return false;
+				keySet[key] = true;
+			}
+			for (key in o2) {
+				if (!(key in keySet) &&
+						key.charAt(0) !== '$' &&
+						isDefined(o2[key]) &&
+						!isFunction(o2[key])) return false;
+			}
+			return true;
 		}
 	}
 	return false;
@@ -450,7 +451,7 @@ function toJsonReplacer(key, value) {
 	return val;
 }
 function toJson(obj, pretty) {
-	if (typeof obj === 'undefined') return undefined;
+	if (isUndefined(obj)) return undefined;
 	if (!isNumber(pretty)) {
 		pretty = pretty ? 2 : null;
 	}
@@ -485,7 +486,7 @@ function startingTag(element) {
 		return element[0].nodeType === NODE_TYPE_TEXT ? lowercase(elemHtml) :
 				elemHtml.
 					match(/^(<[^>]+>)/)[1].
-					replace(/^<([\w\-]+)/, function(match, nodeName) { return '<' + lowercase(nodeName); });
+					replace(/^<([\w\-]+)/, function(match, nodeName) {return '<' + lowercase(nodeName);});
 	} catch (e) {
 		return lowercase(elemHtml);
 	}
@@ -791,11 +792,11 @@ function toDebugString(obj) {
 	return obj;
 }
 var version = {
-	full: '1.4.9',    // all of these placeholder strings will be replaced by grunt's
+	full: '1.5.0',    // all of these placeholder strings will be replaced by grunt's
 	major: 1,    // package task
-	minor: 4,
-	dot: 9,
-	codeName: 'implicit-superannuation'
+	minor: 5,
+	dot: 0,
+	codeName: 'ennoblement-facilitation'
 };
 function publishExternalAPI(angular) {
 	extend(angular, {
@@ -1018,6 +1019,13 @@ function jqLiteParseHTML(html, context) {
 		return parsed.childNodes;
 	}
 	return [];
+}
+function jqLiteWrapNode(node, wrapper) {
+	var parent = node.parentNode;
+	if (parent) {
+		parent.replaceChild(wrapper, node);
+	}
+	wrapper.appendChild(node);
 }
 function JQLite(element) {
 	if (element instanceof JQLite) {
@@ -1276,8 +1284,7 @@ forEachObject({
 	data: jqLiteData,
 	inheritedData: jqLiteInheritedData,
 	scope: function(element) {
-		return jqLite.data(element, '$scope') ||
-			jqLiteInheritedData(element.parentNode || element, ['$isolateScope', '$scope']);
+		return jqLite.data(element, '$scope') || jqLiteInheritedData(element.parentNode || element, ['$isolateScope', '$scope']);
 	},
 	isolateScope: function(element) {
 		return jqLite.data(element, '$isolateScope') || jqLite.data(element, '$isolateScopeNoTemplate');
@@ -1530,12 +1537,7 @@ forEachObject({
 		}
 	},
 	wrap: function(element, wrapNode) {
-		wrapNode = jqLite(wrapNode).eq(0).clone()[0];
-		var parent = element.parentNode;
-		if (parent) {
-			parent.replaceChild(wrapNode, element);
-		}
-		wrapNode.appendChild(element);
+		jqLiteWrapNode(element, jqLite(wrapNode).eq(0).clone()[0]);
 	},
 	remove: jqLiteRemove,
 	detach: function(element) {
@@ -1685,14 +1687,19 @@ var $$HashMapProvider = [function() {
 		return HashMap;
 	}];
 }];
+var ARROW_ARG = /^([^\(]+?)=>/;
 var FN_ARGS = /^[^\(]*\(\s*([^\)]*)\)/m;
 var FN_ARG_SPLIT = /,/;
 var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var $injectorMinErr = minErr('$injector');
-function anonFn(fn) {
+function extractArgs(fn) {
 	var fnText = fn.toString().replace(STRIP_COMMENTS, ''),
-			args = fnText.match(FN_ARGS);
+			args = fnText.match(ARROW_ARG) || fnText.match(FN_ARGS);
+	return args;
+}
+function anonFn(fn) {
+	var args = extractArgs(fn);
 	if (args) {
 		return 'function(' + (args[1] || '').replace(/[\s\r\n]+/, ' ') + ')';
 	}
@@ -1700,7 +1707,6 @@ function anonFn(fn) {
 }
 function annotate(fn, strictDi, name) {
 	var $inject,
-			fnText,
 			argDecl,
 			last;
 	if (typeof fn === 'function') {
@@ -1715,8 +1721,7 @@ function annotate(fn, strictDi, name) {
 					throw $injectorMinErr('strictdi',
 						'{0} is not using explicit annotation and cannot be invoked in strict mode', name);
 				}
-				fnText = fn.toString().replace(STRIP_COMMENTS, '');
-				argDecl = fnText.match(FN_ARGS);
+				argDecl = extractArgs(fn);
 				forEachArray(argDecl[1].split(FN_ARG_SPLIT), function(arg) {
 					arg.replace(FN_ARG, function(all, underscore, name) {
 						$inject.push(name);
@@ -1756,12 +1761,18 @@ function createInjector(modulesToLoad, strictDi) {
 						throw $injectorMinErr('unpr', "Unknown provider: {0}", path.join(' <- '));
 					})),
 			instanceCache = {},
-			instanceInjector = (instanceCache.$injector =
+			protoInstanceInjector =
 					createInternalInjector(instanceCache, function(serviceName, caller) {
 						var provider = providerInjector.get(serviceName + providerSuffix, caller);
-						return instanceInjector.invoke(provider.$get, provider, undefined, serviceName);
-					}));
-	forEachArray(loadModules(modulesToLoad), function(fn) { if (fn) instanceInjector.invoke(fn); });
+						return instanceInjector.invoke(
+								provider.$get, provider, undefined, serviceName);
+					}),
+			instanceInjector = protoInstanceInjector;
+	providerCache['$injector' + providerSuffix] = { $get: valueFn(protoInstanceInjector) };
+	var runBlocks = loadModules(modulesToLoad);
+	instanceInjector = protoInstanceInjector.get('$injector');
+	instanceInjector.strictDi = strictDi;
+	forEachArray(runBlocks, function(fn) { if (fn) instanceInjector.invoke(fn); });
 	return instanceInjector;
 	function supportObject(delegate) {
 		return function(key, value) {
@@ -2006,7 +2017,7 @@ function splitClasses(classes) {
 	if (isString(classes)) {
 		classes = classes.split(' ');
 	}
-	var obj = createMap();
+	var obj = {};
 	forEachArray(classes, function(klass) {
 		if (klass.length) {
 			obj[klass] = true;
@@ -2654,6 +2665,39 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 		}
 		return this;
 	};
+	this.component = function registerComponent(name, options) {
+		var controller = options.controller || function() {};
+		function factory($injector) {
+			function makeInjectable(fn) {
+				if (isFunction(fn) || isArray(fn)) {
+					return function(tElement, tAttrs) {
+						return $injector.invoke(fn, this, {$element: tElement, $attrs: tAttrs});
+					};
+				} else {
+					return fn;
+				}
+			}
+			var template = (!options.template && !options.templateUrl ? '' : options.template);
+			return {
+				controller: controller,
+				controllerAs: identifierForController(options.controller) || options.controllerAs || '$ctrl',
+				template: makeInjectable(template),
+				templateUrl: makeInjectable(options.templateUrl),
+				transclude: options.transclude,
+				scope: {},
+				bindToController: options.bindings || {},
+				restrict: 'E',
+				require: options.require
+			};
+		}
+		forEach(options, function(val, key) {
+			if (key.charAt(0) === '$') {
+				factory[key] = val;
+			}
+		});
+		factory.$inject = ['$injector'];
+		return this.directive(name, factory);
+	};
 	this.aHrefSanitizationWhitelist = function(regexp) {
 		if (isDefined(regexp)) {
 			$$sanitizeUriProvider.aHrefSanitizationWhitelist(regexp);
@@ -2781,7 +2825,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 			},
 			$observe: function(key, fn) {
 				var attrs = this,
-						$$observers = (attrs.$$observers || (attrs.$$observers = createMap())),
+						$$observers = (attrs.$$observers || (attrs.$$observers = {})),
 						listeners = ($$observers[key] || ($$observers[key] = []));
 				listeners.push(fn);
 				$rootScope.$evalAsync(function() {
@@ -3038,6 +3082,19 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				return linkFn(scope, element, attrs, controllers, transcludeFn);
 			};
 		}
+		function compilationGenerator(eager, $compileNodes, transcludeFn, maxPriority, ignoreDirective, previousCompileContext) {
+				if (eager) {
+						return compile($compileNodes, transcludeFn, maxPriority, ignoreDirective, previousCompileContext);
+				}
+				var compiled;
+				return function() {
+						if (!compiled) {
+								compiled = compile($compileNodes, transcludeFn, maxPriority, ignoreDirective, previousCompileContext);
+								$compileNodes = transcludeFn = previousCompileContext = null;
+						}
+						return compiled.apply(this, arguments);
+				};
+		}
 		function applyDirectivesToNode(directives, compileNode, templateAttrs, transcludeFn,
 																	 jqCollection, originalReplaceDirective, preLinkFns, postLinkFns,
 																	 previousCompileContext) {
@@ -3082,7 +3139,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				directiveName = directive.name;
 				if (!directive.templateUrl && directive.controller) {
 					directiveValue = directive.controller;
-					controllerDirectives = controllerDirectives || createMap();
+					controllerDirectives = controllerDirectives || {};
 					controllerDirectives[directiveName] = directive;
 				}
 				if (directiveValue = directive.transclude) {
@@ -3232,7 +3289,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				return value || null;
 			}
 			function setupControllers($element, attrs, transcludeFn, controllerDirectives, isolateScope, scope) {
-				var elementControllers = createMap();
+				var elementControllers = {};
 				for (var controllerKey in controllerDirectives) {
 					var directive = controllerDirectives[controllerKey];
 					var locals = {
@@ -3579,7 +3636,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 				compile: function() {
 						return {
 							pre: function attrInterpolatePreLinkFn(scope, element, attr) {
-								var $$observers = (attr.$$observers || (attr.$$observers = createMap()));
+								var $$observers = (attr.$$observers || (attr.$$observers = {}));
 								if (EVENT_HANDLER_ATTR_REGEXP.test(name)) {
 									throw $compileMinErr('nodomevents',
 											"Interpolations for HTML DOM event attributes are disallowed.  Please use the " +
@@ -3982,7 +4039,7 @@ function isJsonLike(str) {
 		return jsonStart && JSON_ENDS[jsonStart[0]].test(str);
 }
 function parseHeaders(headers) {
-	var parsed = createMap(), i;
+	var parsed = {}, i;
 	function fillInParsed(key, val) {
 		if (key) {
 			parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
@@ -4072,7 +4129,7 @@ function $HttpProvider() {
 					? $injector.get(interceptorFactory) : $injector.invoke(interceptorFactory));
 		});
 		function $http(requestConfig) {
-			if (!angular.isObject(requestConfig)) {
+			if (!isObject(requestConfig)) {
 				throw minErr('$http')('badreq', 'Http request configuration must be an object.  Received: {0}', requestConfig);
 			}
 			if (!isString(requestConfig.url)) {
@@ -4113,12 +4170,11 @@ function $HttpProvider() {
 					chain.push(interceptor.response, interceptor.responseError);
 				}
 			});
-			for (var i = 0; i < chain.length - 1; i += 2) {
-				var thenFn = chain[i];
-				var rejectFn = chain[i+1];
+			while (chain.length) {
+				var thenFn = chain.shift();
+				var rejectFn = chain.shift();
 				promise = promise.then(thenFn, rejectFn);
 			}
-			chain.length = 0;
 			if (useLegacyPromise) {
 				promise.success = function(fn) {
 					promise.then(function(response) {
@@ -4462,7 +4518,25 @@ function $InterpolateProvider() {
 			}
 			return value;
 		}
+		function constantWatchDelegate(scope, listener, objectEquality, constantInterp) {
+			var unwatch;
+			return unwatch = scope.$watch(function constantInterpolateWatch(scope) {
+				unwatch();
+				return constantInterp(scope);
+			}, listener, objectEquality);
+		}
 		function $interpolate(text, mustHaveExpression, trustedContext, allOrNothing) {
+			if (!text.length || text.indexOf(startSymbol) === -1) {
+				var constantInterp;
+				if (!mustHaveExpression) {
+					var unescapedText = unescapeText(text);
+					constantInterp = valueFn(unescapedText);
+					constantInterp.exp = text;
+					constantInterp.expressions = [];
+					constantInterp.$$watchDelegate = constantWatchDelegate;
+				}
+				return constantInterp;
+			}
 			allOrNothing = !!allOrNothing;
 			var startIndex,
 					endIndex,
@@ -5083,14 +5157,8 @@ function ensureSafeMemberName(name, fullExpression) {
 	}
 	return name;
 }
-function getStringValue(name, fullExpression) {
-	name = name + '';
-	if (!isString(name)) {
-		throw $parseMinErr('iseccst',
-				'Cannot convert object to primitive value! '
-				+ 'Expression: {0}', fullExpression);
-	}
-	return name;
+function getStringValue(name) {
+	return name + '';
 }
 function ensureSafeObject(obj, fullExpression) {
 	if (obj) {
@@ -6125,7 +6193,7 @@ ASTCompiler.prototype = {
 		return 'ensureSafeFunction(' + item + ',text)';
 	},
 	getStringValue: function(item) {
-		this.assign(item, 'getStringValue(' + item + ',text)');
+		this.assign(item, 'getStringValue(' + item + ')');
 	},
 	ensureSafeAssignContext: function(item) {
 		return 'ensureSafeAssignContext(' + item + ',text)';
@@ -6563,8 +6631,8 @@ function hasFilter(input) {
 	}
 }
 function $ParseProvider() {
-	var cacheDefault = createMap();
-	var cacheExpensive = createMap();
+	var cacheDefault = {};
+	var cacheExpensive = {};
 	this.$get = ['$filter', function($filter) {
 		var noUnsafeEval = false;
 		var $parseOptions = {
@@ -6957,9 +7025,6 @@ function qFactory(nextTick, exceptionHandler) {
 		if (!isFunction(resolver)) {
 			throw $qMinErr('norslvr', "Expected resolverFn, got '{0}'", resolver);
 		}
-		if (!(this instanceof Q)) {
-			return new Q(resolver);
-		}
 		var deferred = new Deferred();
 		function resolveFn(value) {
 			deferred.resolve(value);
@@ -6970,6 +7035,7 @@ function qFactory(nextTick, exceptionHandler) {
 		resolver(resolveFn, rejectFn);
 		return deferred.promise;
 	};
+	$Q.prototype = Promise.prototype;
 	$Q.defer = defer;
 	$Q.reject = reject;
 	$Q.when = when;
@@ -7317,7 +7383,7 @@ function $RootScopeProvider() {
 				do { // "while dirty" loop
 					dirty = false;
 					current = target;
-					while(asyncQueue.length) {
+					while (asyncQueue.length) {
 						try {
 							asyncTask = asyncQueue.pop();
 							asyncTask.scope.$eval(asyncTask.expression, asyncTask.locals);
@@ -7883,6 +7949,14 @@ function $SnifferProvider() {
 }
 var $compileMinErr = minErr('$compile');
 function $TemplateRequestProvider() {
+	var httpOptions;
+	this.httpOptions = function(val) {
+		if (val) {
+			httpOptions = val;
+			return this;
+		}
+		return httpOptions;
+	};
 	this.$get = ['$templateCache', '$http', '$q', '$sce', function($templateCache, $http, $q, $sce) {
 		function handleRequestFn(tpl, ignoreRequestError) {
 			handleRequestFn.totalPendingRequests++;
@@ -7897,11 +7971,10 @@ function $TemplateRequestProvider() {
 			} else if (transformResponse === defaultHttpResponseTransform) {
 				transformResponse = null;
 			}
-			var httpOptions = {
-				cache: $templateCache,
-				transformResponse: transformResponse
-			};
-			return $http.get(tpl, httpOptions)
+			return $http.get(tpl, extend({
+					cache: $templateCache,
+					transformResponse: transformResponse
+				}, httpOptions))
 				['finally'](function() {
 					handleRequestFn.totalPendingRequests--;
 				})
@@ -9105,7 +9178,7 @@ function badInputChecker(scope, element, attr, ctrl) {
 	if (nativeValidation) {
 		ctrl.$parsers.push(function(value) {
 			var validity = element.prop(VALIDITY_STATE_PROPERTY) || {};
-			return validity.badInput && !validity.typeMismatch ? undefined : value;
+			return validity.badInput || validity.typeMismatch ? undefined : value;
 		});
 	}
 }
@@ -9343,7 +9416,7 @@ function classDirective(name, selector) {
 					attr.$removeClass(newClasses);
 				}
 				function digestClassCounts(classes, count) {
-					var classCounts = element.data('$classCounts') || createMap();
+					var classCounts = element.data('$classCounts') || {};
 					var classesToUpdate = [];
 					forEachArray(classes, function(className) {
 						if (count > 0 || classCounts[className]) {
@@ -9628,7 +9701,9 @@ var VALID_CLASS = 'ng-valid',
 		DIRTY_CLASS = 'ng-dirty',
 		UNTOUCHED_CLASS = 'ng-untouched',
 		TOUCHED_CLASS = 'ng-touched',
-		PENDING_CLASS = 'ng-pending';
+		PENDING_CLASS = 'ng-pending',
+		EMPTY_CLASS = 'ng-empty',
+		NOT_EMPTY_CLASS = 'ng-not-empty';
 var ngModelMinErr = minErr('ngModel');
 var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$parse', '$animate', '$timeout', '$rootScope', '$q', '$interpolate',
 		function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout, $rootScope, $q, $interpolate) {
@@ -9685,6 +9760,15 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 	this.$render = noop;
 	this.$isEmpty = function(value) {
 		return isUndefined(value) || value === '' || value === null || value !== value;
+	};
+	this.$$updateEmptyClasses = function(value) {
+		if (ctrl.$isEmpty(value)) {
+			$animate.removeClass($element, NOT_EMPTY_CLASS);
+			$animate.addClass($element, EMPTY_CLASS);
+		} else {
+			$animate.removeClass($element, EMPTY_CLASS);
+			$animate.addClass($element, NOT_EMPTY_CLASS);
+		}
 	};
 	var currentValidationRunId = 0;
 	addSetValidityMethod({
@@ -9795,7 +9879,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 			forEachObject(ctrl.$asyncValidators, function(validator, name) {
 				var promise = validator(modelValue, viewValue);
 				if (!isPromiseLike(promise)) {
-					throw ngModelMinErr("nopromise",
+					throw ngModelMinErr('nopromise',
 						"Expected asynchronous validator to return a promise but got '{0}' instead.", promise);
 				}
 				setValidity(name, undefined);
@@ -10538,12 +10622,12 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
 						return trackByExpGetter($scope, hashFnLocals);
 					};
 				}
-				var lastBlockMap = createMap();
+				var lastBlockMap = {};
 				$scope.$watchCollection(rhs, function ngRepeatAction(collection) {
 					var index, length,
 							previousNode = $element[0],     // node that cloned nodes should be inserted after
 							nextNode,
-							nextBlockMap = createMap(),
+							nextBlockMap = {},
 							collectionLength,
 							key, value, // key/value of iteration
 							trackById,
@@ -10735,11 +10819,12 @@ var ngSwitchDefaultDirective = ngDirective({
 		ctrl.cases['?'].push({ transclude: $transclude, element: element });
 	 }
 });
+var ngTranscludeMinErr = minErr('ngTransclude');
 var ngTranscludeDirective = ngDirective({
 	restrict: 'A',
 	link: function($scope, $element, $attrs, controller, $transclude) {
 		if (!$transclude) {
-			throw minErr('ngTransclude')('orphan',
+			throw ngTranscludeMinErr('orphan',
 			 'Illegal use of ngTransclude directive in the template! ' +
 			 'No parent directive that requires a transclusion found. ' +
 			 'Element: {0}',
@@ -10765,6 +10850,11 @@ var scriptDirective = ['$templateCache', function($templateCache) {
 	};
 }];
 var noopNgModelController = { $setViewValue: noop, $render: noop };
+function chromeHack(optionElement) {
+	if (optionElement[0].hasAttribute('selected')) {
+		optionElement[0].selected = true;
+	}
+}
 var SelectController =
 				['$element', '$scope', '$attrs', function($element, $scope, $attrs) {
 	var self = this,
@@ -10784,6 +10874,7 @@ var SelectController =
 		}
 	};
 	self.addOption = function(value, element) {
+		if (element[0].nodeType === NODE_TYPE_COMMENT) return;
 		if (value === '') {
 			self.emptyOption = element;
 		}
@@ -10857,11 +10948,6 @@ var selectDirective = function() {
 	};
 };
 var optionDirective = ['$interpolate', function($interpolate) {
-	function chromeHack(optionElement) {
-		if (optionElement[0].hasAttribute('selected')) {
-			optionElement[0].selected = true;
-		}
-	}
 	return {
 		restrict: 'E',
 		priority: 100,
@@ -11120,6 +11206,7 @@ $provide.value("$locale", {
 		]
 	},
 	"id": "en-us",
+	"localeID": "en_US",
 	"pluralCat": function(n, opt_precision) {  var i = n | 0;  var vf = getVF(n, opt_precision);  if (i == 1 && vf.v == 0) {    return PLURAL_CATEGORY.ONE;  }  return PLURAL_CATEGORY.OTHER;}
 });
 }]);
