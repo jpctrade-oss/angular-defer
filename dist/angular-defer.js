@@ -4132,9 +4132,6 @@ function $HttpProvider() {
 			if (!isObject(requestConfig)) {
 				throw minErr('$http')('badreq', 'Http request configuration must be an object.  Received: {0}', requestConfig);
 			}
-			if (!isString(requestConfig.url)) {
-				throw minErr('$http')('badreq', 'Http request configuration url must be a string.  Received: {0}', requestConfig.url);
-			}
 			var config = extend({
 				method: 'get',
 				transformRequest: defaults.transformRequest,
