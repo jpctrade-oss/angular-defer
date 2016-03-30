@@ -8756,7 +8756,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 					try {
 						directive = directives[i];
 						if ((isUndefined(maxPriority) || maxPriority > directive.priority) &&
-								 directive.restrict.indexOf(location) != -1) {
+								 directive.restrict && directive.restrict.indexOf(location) != -1) {
 							if (startAttrName) {
 								directive = inherit(directive, {$$start: startAttrName, $$end: endAttrName});
 							}
