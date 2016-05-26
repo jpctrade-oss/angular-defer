@@ -15544,7 +15544,7 @@ function evalExpr(expr) {
 		match = matches[i], next = matches[i + 1];
 		console.log('expr individual', match, next);
 		if (match === 'null' || match === '$event') continue;
-		if (/[$a-zA-Z]/.test(match[0]) && (!next || next.trim()[0] !== ':')) {
+		if (/[$a-zA-Z_]/.test(match[0]) && (!next || next.trim()[0] !== ':')) {
 			if (i) {
 				prev = matches[i-1];
 				if (prev[prev.length-1] === '.') continue;
