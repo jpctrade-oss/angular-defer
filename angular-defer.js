@@ -1830,7 +1830,7 @@ function bindJQuery() {
 		jqLite = JQLite;
 	// }
 
-	angular.element = jqLite;
+	window.jq = angular.element = jqLite;
 
 	// Prevent double-proxying.
 	// bindJQueryFired = true;

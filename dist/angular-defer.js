@@ -638,7 +638,7 @@ function snake_case(name, separator) {
 var skipDestroyOnNextJQueryCleanData;
 function bindJQuery() {
 		jqLite = JQLite;
-	angular.element = jqLite;
+	window.jq = angular.element = jqLite;
 }
 function assertArg(arg, name, reason) {
 	if (!arg) {
