@@ -12675,6 +12675,7 @@ function $LocationProvider() {
 						$window.angular['ff-684208-preventDefault'] = true;
 						//click links should always go to top
 						document.documentElement.scrollTop = 0;
+						document.body.scrollTop = 0;
 						//unset previously set $clicked to undefined
 						$rootScope.$clicked = void 0;
 					}
