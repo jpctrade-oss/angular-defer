@@ -12674,8 +12674,9 @@ function $LocationProvider() {
 						// hack to work around FF6 bug 684208 when scenario runner clicks on links
 						$window.angular['ff-684208-preventDefault'] = true;
 						//click links should always go to top
-						document.documentElement.scrollTop = 0;
-						document.body.scrollTop = 0;
+						if (window.pageYOffset) window.scrollTo(0, 0);
+						if (document.documentElement.scrollTop) document.documentElement.scrollTop = 0;
+						if (document.body.scrollTop) document.body.scrollTop = 0;
 						//unset previously set $clicked to undefined
 						$rootScope.$clicked = void 0;
 					}
